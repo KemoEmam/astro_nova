@@ -119,6 +119,7 @@ class PowerUp extends PositionComponent with HasGameReference<AstroNovaGame> {
 
     final textPainter = TextPaint(
       style: TextStyle(
+        fontFamily: 'Roboto',
         color: type.color,
         fontSize: 14,
         fontWeight: FontWeight.bold,

@@ -36,6 +36,7 @@ class FloatingText extends PositionComponent
     final opacity = (1 - _age / lifespan).clamp(0.0, 1.0);
     TextPaint(
       style: TextStyle(
+        fontFamily: 'Roboto',
         color: color.withValues(alpha: opacity),
         fontSize: fontSize,
         fontWeight: FontWeight.bold,
@@ -91,6 +92,7 @@ class CinematicBanner extends PositionComponent
 
     TextPaint(
       style: TextStyle(
+        fontFamily: 'Roboto',
         color: color.withValues(alpha: alpha),
         fontSize: 34 * pulse,
         fontWeight: FontWeight.bold,
@@ -103,6 +105,7 @@ class CinematicBanner extends PositionComponent
     if (subtitle.isNotEmpty) {
       TextPaint(
         style: TextStyle(
+          fontFamily: 'Roboto',
           color: const Color(0xFFFFFFFF).withValues(alpha: alpha * 0.85),
           fontSize: 15,
           letterSpacing: 3,
