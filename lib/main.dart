@@ -1,9 +1,13 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import 'game/astro_nova_game.dart';
-import 'game/palette.dart';
-import 'ui/overlays.dart';
+import 'package:astro_nova/src/core/palette.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
+import 'package:astro_nova/src/ui/overlays/game_over_overlay.dart';
+import 'package:astro_nova/src/ui/overlays/hud_overlay.dart';
+import 'package:astro_nova/src/ui/overlays/menu_overlay.dart';
+import 'package:astro_nova/src/ui/overlays/pause_overlay.dart';
+import 'package:astro_nova/src/ui/overlays/victory_overlay.dart';
 
 void main() {
   runApp(const AstroNovaApp());
@@ -15,7 +19,7 @@ class AstroNovaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ASTRONOVA',
+      title: 'AstroNova',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),
       home: Scaffold(

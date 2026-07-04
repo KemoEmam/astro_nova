@@ -4,7 +4,7 @@ import 'dart:ui' hide TextStyle;
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart' show FontWeight, TextStyle;
 
-import '../astro_nova_game.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
 
 /// Short-lived text that rises and fades — used for power-up names and
 /// score call-outs.

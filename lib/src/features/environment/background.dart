@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-import '../astro_nova_game.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
 
 /// Full-screen backdrop that smoothly lerps to the current level theme's
 /// background color, so level transitions feel like flying into a new region.

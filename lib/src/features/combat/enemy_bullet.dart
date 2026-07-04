@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import '../astro_nova_game.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
 
 /// Boss projectile. The player handles the collision side.
 class EnemyBullet extends PositionComponent

@@ -7,17 +7,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show KeyEventResult;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'buffs.dart';
-import 'components/background.dart';
-import 'components/boss.dart';
-import 'components/bullet.dart';
-import 'components/effects.dart';
-import 'components/enemy.dart';
-import 'components/enemy_spawner.dart';
-import 'components/player.dart';
-import 'components/starfield.dart';
-import 'level_manager.dart';
-import 'level_theme.dart';
+import 'package:astro_nova/src/features/powerups/buffs.dart';
+import 'package:astro_nova/src/features/environment/background.dart';
+import 'package:astro_nova/src/features/bosses/boss.dart';
+import 'package:astro_nova/src/features/combat/bullet.dart';
+import 'package:astro_nova/src/features/effects/effects.dart';
+import 'package:astro_nova/src/features/enemies/enemy.dart';
+import 'package:astro_nova/src/features/enemies/enemy_spawner.dart';
+import 'package:astro_nova/src/features/player/player.dart';
+import 'package:astro_nova/src/features/environment/starfield.dart';
+import 'package:astro_nova/src/game/level_manager.dart';
+import 'package:astro_nova/src/core/level_theme.dart';
 
 enum GameState { menu, playing, paused, gameOver, victory }
 

@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-import '../astro_nova_game.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
 
 class _Star {
   _Star(this.position, this.speed, this.radius, this.layer);

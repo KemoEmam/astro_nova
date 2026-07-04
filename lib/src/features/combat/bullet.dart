@@ -4,9 +4,9 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import '../astro_nova_game.dart';
-import '../palette.dart';
-import '../weapon.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
+import 'package:astro_nova/src/core/palette.dart';
+import 'package:astro_nova/src/features/player/weapon.dart';
 
 /// Anything a player bullet can hurt (regular enemies and bosses).
 abstract interface class Damageable {

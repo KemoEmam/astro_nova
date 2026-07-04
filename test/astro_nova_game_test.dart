@@ -1,15 +1,15 @@
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:astro_nova/game/components/boss.dart';
-import 'package:astro_nova/game/components/boss_core.dart';
-import 'package:astro_nova/game/components/bullet.dart';
-import 'package:astro_nova/game/components/enemy.dart';
-import 'package:astro_nova/game/components/power_up.dart';
-import 'package:astro_nova/game/level_manager.dart';
-import 'package:astro_nova/game/level_theme.dart';
-import 'package:astro_nova/game/astro_nova_game.dart';
-import 'package:astro_nova/game/weapon.dart';
+import 'package:astro_nova/src/features/bosses/boss.dart';
+import 'package:astro_nova/src/features/bosses/boss_core.dart';
+import 'package:astro_nova/src/features/combat/bullet.dart';
+import 'package:astro_nova/src/features/enemies/enemy.dart';
+import 'package:astro_nova/src/features/powerups/power_up.dart';
+import 'package:astro_nova/src/game/level_manager.dart';
+import 'package:astro_nova/src/core/level_theme.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
+import 'package:astro_nova/src/features/player/weapon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<AstroNovaGame> pumpGame(WidgetTester tester) async {

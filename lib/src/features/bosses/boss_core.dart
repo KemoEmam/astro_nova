@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import '../astro_nova_game.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
 
 /// Boss-only reward: exactly one core drops per boss fight (when the last
 /// boss of the level dies). Collecting it grants that level's unique

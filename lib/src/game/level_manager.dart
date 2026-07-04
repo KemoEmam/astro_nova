@@ -1,12 +1,12 @@
 import 'package:flame/components.dart';
 
-import 'components/boss.dart';
-import 'components/boss_core.dart';
-import 'components/effects.dart';
-import 'components/enemy_bullet.dart';
-import 'components/power_up.dart';
-import 'level_theme.dart';
-import 'astro_nova_game.dart';
+import 'package:astro_nova/src/features/bosses/boss.dart';
+import 'package:astro_nova/src/features/bosses/boss_core.dart';
+import 'package:astro_nova/src/features/effects/effects.dart';
+import 'package:astro_nova/src/features/combat/enemy_bullet.dart';
+import 'package:astro_nova/src/features/powerups/power_up.dart';
+import 'package:astro_nova/src/core/level_theme.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
 
 enum LevelPhase { intro, waves, bossIntro, boss, cleared }
 

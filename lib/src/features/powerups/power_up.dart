@@ -6,9 +6,9 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/painting.dart' show FontWeight, TextStyle;
 
-import '../astro_nova_game.dart';
-import '../palette.dart';
-import '../weapon.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
+import 'package:astro_nova/src/core/palette.dart';
+import 'package:astro_nova/src/features/player/weapon.dart';
 
 enum PowerUpType {
   weapon(Palette.powerUpWeapon, 'W'),

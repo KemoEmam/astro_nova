@@ -6,17 +6,17 @@ import 'package:flame/components.dart';
 import 'package:flutter/painting.dart' show HSVColor;
 import 'package:flutter/services.dart';
 
-import '../astro_nova_game.dart';
-import '../palette.dart';
-import '../weapon.dart';
-import 'boss.dart';
-import 'boss_core.dart';
-import 'bullet.dart';
-import 'effects.dart';
-import 'enemy.dart';
-import 'enemy_bullet.dart';
-import 'explosion.dart';
-import 'power_up.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
+import 'package:astro_nova/src/core/palette.dart';
+import 'package:astro_nova/src/features/player/weapon.dart';
+import 'package:astro_nova/src/features/bosses/boss.dart';
+import 'package:astro_nova/src/features/bosses/boss_core.dart';
+import 'package:astro_nova/src/features/combat/bullet.dart';
+import 'package:astro_nova/src/features/effects/effects.dart';
+import 'package:astro_nova/src/features/enemies/enemy.dart';
+import 'package:astro_nova/src/features/combat/enemy_bullet.dart';
+import 'package:astro_nova/src/features/combat/explosion.dart';
+import 'package:astro_nova/src/features/powerups/power_up.dart';
 
 class Player extends PositionComponent
     with

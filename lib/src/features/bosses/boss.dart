@@ -4,11 +4,11 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import '../astro_nova_game.dart';
-import 'bullet.dart';
-import 'enemy.dart';
-import 'enemy_bullet.dart';
-import 'explosion.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
+import 'package:astro_nova/src/features/combat/bullet.dart';
+import 'package:astro_nova/src/features/enemies/enemy.dart';
+import 'package:astro_nova/src/features/combat/enemy_bullet.dart';
+import 'package:astro_nova/src/features/combat/explosion.dart';
 
 enum BossMovement { strafe, figure8, dive, teleport }
 

@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 
-import '../astro_nova_game.dart';
-import 'enemy.dart';
+import 'package:astro_nova/src/game/astro_nova_game.dart';
+import 'package:astro_nova/src/features/enemies/enemy.dart';
 
 /// Level-driven spawner. The [LevelManager] toggles [enabled] (off during
 /// boss fights) and calls [configureForLevel] on every level change.
