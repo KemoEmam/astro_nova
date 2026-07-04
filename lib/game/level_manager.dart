@@ -17,8 +17,9 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
   LevelPhase phase = LevelPhase.intro;
   double _phaseTime = 0;
 
-  /// Wave phase length: short and snappy, creeping up a little per level.
-  double get _waveDuration => 18.0 + game.level.value * 1.5;
+  /// Wave phase length: very short early so the campaign hooks fast, growing
+  /// toward the level-10 maximum (~12s at level 1, ~32s at level 10).
+  double get _waveDuration => 10.0 + game.level.value * 2.2;
 
   @override
   void onMount() {

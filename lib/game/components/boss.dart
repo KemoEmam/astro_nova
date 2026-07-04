@@ -62,8 +62,7 @@ class Boss extends PositionComponent
     with HasGameReference<NeonVoidGame>
     implements Damageable {
   Boss({required this.spec})
-      : _hp = spec.hp,
-        super(
+      : super(
           position: Vector2(NeonVoidGame.worldWidth / 2, -80),
           size: Vector2.all(spec.radius * 2),
           anchor: Anchor.center,
@@ -71,7 +70,8 @@ class Boss extends PositionComponent
         );
 
   final BossSpec spec;
-  int _hp;
+  late int _maxHp;
+  late int _hp;
   double _age = 0;
   double _hitFlash = 0;
   double _attackTimer = 0;
@@ -86,6 +86,9 @@ class Boss extends PositionComponent
   @override
   void onLoad() {
     add(CircleHitbox(collisionType: CollisionType.passive));
+    // Extra +5% HP per campaign level on top of the per-boss spec values.
+    _maxHp = (spec.hp * (1 + 0.05 * (game.level.value - 1))).round();
+    _hp = _maxHp;
     game.bossHealth.value = 1.0;
     game.bossName.value = spec.name;
   }
@@ -185,7 +188,7 @@ class Boss extends PositionComponent
     if (_entering) return; // invincible during the fly-in
     _hp -= damage;
     _hitFlash = 1;
-    game.bossHealth.value = (_hp / spec.hp).clamp(0.0, 1.0);
+    game.bossHealth.value = (_hp / _maxHp).clamp(0.0, 1.0);
     if (_hp <= 0) {
       _die();
     }

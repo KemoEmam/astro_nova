@@ -68,7 +68,7 @@ const _tierColors = <Color>[
 WeaponSpec _tier(int level) {
   // Unlock schedule (level thresholds).
   final straightBarrels = 1 +
-      (level >= 4 ? 1 : 0) +
+      (level >= 2 ? 1 : 0) +
       (level >= 10 ? 1 : 0) +
       (level >= 16 ? 1 : 0) +
       (level >= 22 ? 1 : 0) +
@@ -81,8 +81,10 @@ WeaponSpec _tier(int level) {
   final homingPairs =
       (level >= 12 ? 1 : 0) + (level >= 20 ? 1 : 0) + (level >= 26 ? 1 : 0);
 
-  final damage = 1 + (level - 1) ~/ 7;
-  final pierce = level >= 9 ? (level - 5) ~/ 5 : 0;
+  // Damage capped at 3 so high tiers win through volume, pierce, and homing
+  // rather than one-shotting everything the moment it spawns.
+  final damage = 1 + (level - 1) ~/ 10;
+  final pierce = level >= 9 ? 1 + (level - 9) ~/ 5 : 0;
   final fireInterval = 0.30 - 0.0076 * (level - 1);
 
   final shots = <ShotSpec>[];
@@ -119,7 +121,9 @@ WeaponSpec _tier(int level) {
     _weaponNames[level - 1],
     fireInterval,
     shots,
-    _tierColors[(level - 1) * _tierColors.length ~/ maxWeaponLevel],
+    // Cycle hues every tier so back-to-back pickups always look different,
+    // even when the structural change that tier is subtle.
+    _tierColors[(level - 1) % _tierColors.length],
     shape,
   );
 }

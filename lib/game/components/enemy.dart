@@ -80,6 +80,9 @@ class Enemy extends PositionComponent
 
   @override
   void takeHit(int damage) {
+    // Invulnerable until fully on screen — stops high-tier weapons from
+    // clearing spawns before the player ever sees them.
+    if (position.y < type.radius) return;
     _hp -= damage;
     _hitFlash = 1;
     if (_hp <= 0) {
