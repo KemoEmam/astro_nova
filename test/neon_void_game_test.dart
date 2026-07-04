@@ -5,6 +5,7 @@ import 'package:neon_void/game/components/boss.dart';
 import 'package:neon_void/game/components/boss_core.dart';
 import 'package:neon_void/game/components/bullet.dart';
 import 'package:neon_void/game/components/enemy.dart';
+import 'package:neon_void/game/components/power_up.dart';
 import 'package:neon_void/game/level_manager.dart';
 import 'package:neon_void/game/level_theme.dart';
 import 'package:neon_void/game/neon_void_game.dart';
@@ -149,6 +150,28 @@ void main() {
     game.update(0);
     expect(game.level.value, 2);
     expect(game.state, GameState.playing);
+  });
+
+  testWidgets('pity system guarantees a weapon drop within 8 dry kills',
+      (tester) async {
+    final game = await pumpGame(tester);
+    game.startGame();
+    game.update(0);
+
+    // 8 kills with no weapon drop → the 8th forces one.
+    for (var i = 0; i < 8; i++) {
+      final enemy =
+          Enemy(type: EnemyType.drifter, position: Vector2(200, 100));
+      await game.runRoot.add(enemy);
+      game.update(0);
+      enemy.takeHit(1);
+      game.update(0);
+    }
+    final weaponDrops = game.runRoot.children
+        .query<PowerUp>()
+        .where((p) => p.type == PowerUpType.weapon);
+    expect(weaponDrops, isNotEmpty);
+    expect(game.weaponDroppedThisLevel, isTrue);
   });
 
   testWidgets('boss relics apply permanent run buffs', (tester) async {

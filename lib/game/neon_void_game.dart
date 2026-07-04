@@ -57,6 +57,11 @@ class NeonVoidGame extends FlameGame
   double scoreMultiplier = 1.0;
   int maxLivesCurrent = maxLives;
 
+  // Bad-luck protection: guarantees at least one weapon drop per level
+  // (reset by the LevelManager on every level start).
+  int killsSinceWeaponDrop = 0;
+  bool weaponDroppedThisLevel = false;
+
   Player? player;
   EnemySpawner? spawner;
   LevelManager? levelManager;
@@ -118,6 +123,8 @@ class NeonVoidGame extends FlameGame
     magnet = false;
     scoreMultiplier = 1.0;
     maxLivesCurrent = maxLives;
+    killsSinceWeaponDrop = 0;
+    weaponDroppedThisLevel = false;
 
     player = Player();
     spawner = EnemySpawner()..configureForLevel(1);

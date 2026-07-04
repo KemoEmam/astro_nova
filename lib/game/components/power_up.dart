@@ -40,6 +40,14 @@ class PowerUp extends PositionComponent with HasGameReference<NeonVoidGame> {
     final weaponLevel = game.weaponLevel.value;
     final shieldLevel = game.player?.shieldLevel ?? 0;
 
+    // Bad-luck protection: if too many kills go by in a level without a
+    // weapon drop, force one so the player never reaches a boss dry.
+    game.killsSinceWeaponDrop++;
+    if (!game.weaponDroppedThisLevel && game.killsSinceWeaponDrop >= 8) {
+      _drop(game, PowerUpType.weapon, position);
+      return;
+    }
+
     final base = 0.21 - 0.011 * (level - 1);
     final upgradePenalty =
         1.0 - (weaponLevel - 1) / 70.0 - shieldLevel / 20.0;
@@ -52,6 +60,14 @@ class PowerUp extends PositionComponent with HasGameReference<NeonVoidGame> {
     final shieldWeight = (maxShieldLevel - shieldLevel) + 2.0;
     final roll = _random.nextDouble() * (weaponWeight + shieldWeight);
     final type = roll < weaponWeight ? PowerUpType.weapon : PowerUpType.shield;
+    _drop(game, type, position);
+  }
+
+  static void _drop(NeonVoidGame game, PowerUpType type, Vector2 position) {
+    if (type == PowerUpType.weapon) {
+      game.weaponDroppedThisLevel = true;
+      game.killsSinceWeaponDrop = 0;
+    }
     game.spawn(PowerUp(type: type, position: position));
   }
 

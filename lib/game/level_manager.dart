@@ -4,6 +4,7 @@ import 'components/boss.dart';
 import 'components/boss_core.dart';
 import 'components/effects.dart';
 import 'components/enemy_bullet.dart';
+import 'components/power_up.dart';
 import 'level_theme.dart';
 import 'neon_void_game.dart';
 
@@ -34,6 +35,8 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
     phase = LevelPhase.intro;
     _phaseTime = 0;
     game.levelProgress.value = 0;
+    game.killsSinceWeaponDrop = 0;
+    game.weaponDroppedThisLevel = false;
     final theme = game.theme;
     game.spawn(CinematicBanner(
       title: 'LEVEL ${game.level.value}',
@@ -97,6 +100,17 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
       lifespan: 2.0,
       flashing: true,
     ));
+
+    // Backstop for the drop guarantee: if the whole wave phase ended with no
+    // weapon drop (few kills, all misses), hand one over during the warning
+    // cinematic so the player never faces a boss dry.
+    if (!game.weaponDroppedThisLevel) {
+      game.weaponDroppedThisLevel = true;
+      game.spawn(PowerUp(
+        type: PowerUpType.weapon,
+        position: Vector2(NeonVoidGame.worldWidth / 2, 60),
+      ));
+    }
   }
 
   void _spawnBosses() {
