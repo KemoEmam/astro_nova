@@ -87,6 +87,10 @@ class Boss extends PositionComponent
   late int _maxHp;
   late int _hp;
 
+  /// True once this boss has died (set before deferred removal completes,
+  /// so "how many bosses are still fighting" checks are race-free).
+  bool isDefeated = false;
+
   double get healthFraction => (_hp / _maxHp).clamp(0.0, 1.0);
   double _age = 0;
   double _hitFlash = 0;
@@ -102,10 +106,14 @@ class Boss extends PositionComponent
   @override
   void onLoad() {
     add(CircleHitbox(collisionType: CollisionType.passive));
-    // Per-level HP growth (steeper past level 3 to keep pace with Boss Core
-    // damage buffs), shaved by a global 0.92 to keep fights snappy.
+    // Per-level HP growth: steeper past level 3, steeper again past level 5
+    // to keep pace with the Boss Core buff windows. Shaved by a global 0.92
+    // to keep fights snappy.
     final level = game.level.value;
-    final growth = 1 + 0.05 * (level - 1) + (level > 3 ? 0.03 * (level - 3) : 0);
+    final growth = 1 +
+        0.05 * (level - 1) +
+        (level > 3 ? 0.03 * (level - 3) : 0) +
+        (level > 5 ? 0.05 * (level - 5) : 0);
     _maxHp = (spec.hp * hpScale * 0.92 * growth).round();
     _hp = _maxHp;
   }
@@ -213,6 +221,8 @@ class Boss extends PositionComponent
   }
 
   void _die() {
+    if (isDefeated) return;
+    isDefeated = true;
     game.addScore(150 + 100 * game.level.value);
     game.shake(14);
     game.spawn(explosion(

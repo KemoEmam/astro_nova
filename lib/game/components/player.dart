@@ -146,9 +146,16 @@ class Player extends PositionComponent
     } else if (other is PowerUp) {
       _collect(other);
     } else if (other is BossCore) {
-      final relicName = game.applyBossRelic(other.relicLevel);
+      final buff = game.applyBossRelic(other.relicLevel);
       game.addScore(250);
-      _announce(relicName, const Color(0xFFFFD740));
+      _announce(buff.name, buff.color);
+      game.spawn(FloatingText(
+        buff.blurb,
+        position: position - Vector2(0, 22),
+        color: buff.color,
+        fontSize: 11,
+        lifespan: 1.4,
+      ));
       game.shake(4);
       other.removeFromParent();
     }

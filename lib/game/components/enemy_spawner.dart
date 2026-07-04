@@ -26,8 +26,9 @@ class EnemySpawner extends Component with HasGameReference<NeonVoidGame> {
     _interval = max(0.52, 1.2 - 0.075 * (level - 1));
     _speedMultiplier = 1.0 + 0.045 * (level - 1);
     // From level 4 on, enemies gain a touch more HP to keep pace with the
-    // player's Boss Core damage buffs.
-    _bonusHp = level < 4 ? 0 : (level - 2) ~/ 2;
+    // player's Boss Core damage buffs — and a second helping past level 5.
+    _bonusHp = (level < 4 ? 0 : (level - 2) ~/ 2) +
+        (level > 5 ? (level - 5) ~/ 2 : 0);
   }
 
   @override

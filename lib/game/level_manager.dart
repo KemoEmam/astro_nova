@@ -19,7 +19,6 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
   LevelPhase phase = LevelPhase.intro;
   double _phaseTime = 0;
   int _bossCount = 1;
-  int _bossesRemaining = 0;
 
   /// Wave phase length: very short early so the campaign hooks fast, growing
   /// toward the level-10 maximum (~10s at level 1, ~30s at level 10).
@@ -123,7 +122,6 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
   void _spawnBosses() {
     final lineup = _lineup;
     _bossCount = lineup.length;
-    _bossesRemaining = lineup.length;
 
     final n = lineup.length;
     final laneWidth = NeonVoidGame.worldWidth / n;
@@ -150,9 +148,15 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
 
   void onBossDefeated(Vector2 position) {
     if (phase != LevelPhase.boss) return;
-    _bossesRemaining--;
     updateBossBar();
-    if (_bossesRemaining > 0) return;
+    // Count the bosses actually still fighting — robust against
+    // simultaneous deaths (shockwaves, piercing shots) and deferred
+    // component removal. The Core drops only when the LAST one falls.
+    final stillFighting = game.runRoot.children
+        .query<Boss>()
+        .where((b) => !b.isDefeated)
+        .length;
+    if (stillFighting > 0) return;
 
     game.bossHealth.value = null;
     game.bossName.value = null;

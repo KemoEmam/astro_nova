@@ -179,11 +179,11 @@ void main() {
     game.startGame();
     game.update(0);
 
-    expect(game.applyBossRelic(1), 'OVERCLOCK');
+    expect(game.applyBossRelic(1).name, 'OVERCLOCK');
     expect(game.fireRateScale, closeTo(0.75, 0.001));
-    expect(game.applyBossRelic(3), 'AMP CORE');
+    expect(game.applyBossRelic(3).name, 'AMP CORE');
     expect(game.bonusDamage, 1);
-    expect(game.applyBossRelic(2), 'MAGNET CORE');
+    expect(game.applyBossRelic(2).name, 'MAGNET CORE');
     expect(game.magnet, isTrue);
     expect(game.activeBuffs.value, hasLength(3));
 

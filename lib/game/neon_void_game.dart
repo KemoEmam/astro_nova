@@ -167,11 +167,11 @@ class NeonVoidGame extends FlameGame
   }
 
   /// Applies the given level's Boss Core relic as a timed buff and returns
-  /// its name for the pickup announcement.
-  String applyBossRelic(int relicLevel) {
+  /// it for the pickup announcement.
+  ActiveBuff applyBossRelic(int relicLevel) {
     final buff = bossRelicFor(relicLevel);
     activeBuffs.value = [...activeBuffs.value, buff];
-    return buff.name;
+    return buff;
   }
 
   @override

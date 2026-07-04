@@ -224,96 +224,176 @@ class _BuffSidebar extends StatelessWidget {
 }
 
 /// Always-visible campaign map at the bottom of the HUD: 10 boss stations
-/// from start to finish. Cleared stations glow gold, the current one pulses,
-/// and the ship marker slides along with wave progress.
-class _CampaignMap extends StatelessWidget {
+/// from start to finish. The traveled part of the track glows, cleared
+/// stations flip to gold stars, the current one pulses in its boss color,
+/// and the ship marker slides smoothly with wave progress.
+class _CampaignMap extends StatefulWidget {
   const _CampaignMap({required this.game});
 
   final NeonVoidGame game;
 
   @override
+  State<_CampaignMap> createState() => _CampaignMapState();
+}
+
+class _CampaignMapState extends State<_CampaignMap>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..repeat(reverse: true);
+
+  static const _gold = Color(0xFFFFD740);
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final game = widget.game;
     return ValueListenableBuilder<int>(
       valueListenable: game.level,
       builder: (_, level, _) => ValueListenableBuilder<double>(
         valueListenable: game.levelProgress,
-        builder: (_, progress, _) => SizedBox(
-          height: 44,
-          child: LayoutBuilder(
-            builder: (_, constraints) {
-              const count = LevelManager.maxLevel;
-              final width = constraints.maxWidth - 24;
-              double xFor(int i) => 12 + width * i / (count - 1);
-              final shipX =
-                  12 + width * ((level - 1) + progress.clamp(0.0, 1.0)) / count;
+        builder: (_, progress, _) => AnimatedBuilder(
+          animation: _pulse,
+          builder: (_, _) => SizedBox(
+            height: 48,
+            child: LayoutBuilder(
+              builder: (_, constraints) {
+                const count = LevelManager.maxLevel;
+                final width = constraints.maxWidth - 24;
+                // Stations and ship share the SAME (count - 1) segments, so
+                // the marker lands exactly on a station at phase boundaries.
+                double xFor(double seg) =>
+                    12 + width * (seg / (count - 1)).clamp(0.0, 1.0);
+                final shipSeg = (level - 1) + progress.clamp(0.0, 1.0);
+                final shipX = xFor(shipSeg);
+                final p = _pulse.value;
 
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Track line.
-                  Positioned(
-                    left: 12,
-                    right: 12,
-                    top: 28,
-                    child: Container(height: 2, color: Colors.white12),
-                  ),
-                  // Boss stations.
-                  for (var i = 0; i < count; i++)
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Base track.
                     Positioned(
-                      left: xFor(i) - 7,
-                      top: 21,
-                      child: _station(
-                        bossSpecs[i].color,
-                        cleared: i < level - 1,
-                        current: i == level - 1,
+                      left: 12,
+                      right: 12,
+                      top: 31,
+                      child: Container(height: 2, color: Colors.white12),
+                    ),
+                    // Glowing traveled section.
+                    Positioned(
+                      left: 12,
+                      top: 30,
+                      child: Container(
+                        width: (shipX - 12).clamp(0.0, width),
+                        height: 4,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(2),
+                          gradient: const LinearGradient(
+                            colors: [_accent, _gold],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _accent.withValues(alpha: 0.6),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  // Ship marker sliding along the track.
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 300),
-                    left: shipX - 7,
-                    top: 2,
-                    child: const Icon(Icons.navigation,
-                        color: _accent, size: 15),
-                  ),
-                ],
-              );
-            },
+                    // Boss stations (diamonds in each boss's color).
+                    for (var i = 0; i < count; i++)
+                      Positioned(
+                        left: xFor(i.toDouble()) - 8,
+                        top: 24,
+                        child: _station(
+                          bossSpecs[i].color,
+                          cleared: i < level - 1,
+                          current: i == level - 1,
+                          pulse: p,
+                        ),
+                      ),
+                    // Ship marker with engine glow.
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                      left: shipX - 9,
+                      top: 1,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: _accent.withValues(alpha: 0.5 + 0.3 * p),
+                              blurRadius: 8 + 4 * p,
+                            ),
+                          ],
+                        ),
+                        child: Transform.rotate(
+                          angle: 1.5708, // travelling left → right
+                          child:
+                              const Icon(Icons.navigation, color: _accent, size: 18),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _station(Color color, {required bool cleared, required bool current}) {
-    final gold = const Color(0xFFFFD740);
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
-      width: 14,
-      height: 14,
-      transform: current
-          ? (Matrix4.identity()..scaleByDouble(1.25, 1.25, 1.25, 1))
-          : Matrix4.identity(),
-      transformAlignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: cleared ? gold : Colors.transparent,
-        border: Border.all(
-          color: cleared ? gold : (current ? color : color.withValues(alpha: 0.5)),
-          width: current ? 2.5 : 1.5,
+  Widget _station(Color color,
+      {required bool cleared, required bool current, required double pulse}) {
+    final size = current ? 15.0 + 3.0 * pulse : (cleared ? 15.0 : 12.0);
+    return SizedBox(
+      width: 16,
+      height: 16,
+      child: Center(
+        child: Transform.rotate(
+          angle: 0.7854, // diamond
+          child: Container(
+            width: size * 0.72,
+            height: size * 0.72,
+            decoration: BoxDecoration(
+              color: cleared
+                  ? _gold
+                  : (current
+                      ? color.withValues(alpha: 0.25 + 0.3 * pulse)
+                      : Colors.transparent),
+              border: Border.all(
+                color: cleared
+                    ? _gold
+                    : (current ? color : color.withValues(alpha: 0.45)),
+                width: current ? 2.2 : 1.4,
+              ),
+              boxShadow: cleared || current
+                  ? [
+                      BoxShadow(
+                        color: (cleared ? _gold : color)
+                            .withValues(alpha: cleared ? 0.7 : 0.4 + 0.4 * pulse),
+                        blurRadius: cleared ? 7 : 6 + 6 * pulse,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: cleared
+                ? Transform.rotate(
+                    angle: -0.7854,
+                    child:
+                        const Icon(Icons.star, size: 8, color: Colors.black),
+                  )
+                : null,
+          ),
         ),
-        boxShadow: cleared || current
-            ? [
-                BoxShadow(
-                  color: (cleared ? gold : color).withValues(alpha: 0.7),
-                  blurRadius: cleared ? 8 : 10,
-                ),
-              ]
-            : null,
       ),
-      child: cleared
-          ? const Icon(Icons.star, size: 8, color: Colors.black)
-          : null,
     );
   }
 }
