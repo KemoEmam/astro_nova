@@ -1,11 +1,11 @@
 {
-    "name": "astro_nova",
-    "short_name": "astro_nova",
+    "name": "AstroNova",
+    "short_name": "AstroNova",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#05060F",
+    "theme_color": "#05060F",
+    "description": "A 10-level neon space shooter built with Flutter and the Flame engine.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

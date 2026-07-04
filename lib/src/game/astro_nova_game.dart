@@ -99,6 +99,11 @@ class AstroNovaGame extends FlameGame
     highScore.value = prefs.getInt(_highScoreKey) ?? 0;
 
     overlays.add(overlayMenu);
+
+    // Screenshot/demo tooling hook: ?autostart skips the menu.
+    if (Uri.base.queryParameters.containsKey('autostart')) {
+      startGame();
+    }
   }
 
   void spawn(Component component) => _runRoot?.add(component);
