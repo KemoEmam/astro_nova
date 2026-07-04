@@ -2,7 +2,7 @@
 
 A neon-styled vertical space shooter built with **Flutter** and the **[Flame](https://flame-engine.org/) game engine**. All graphics are vector-rendered in code — no sprite assets, just `Canvas`, glow effects, and particles.
 
-> **[▶ Play it in your browser](https://karim-elemam.github.io/neon_void/)** *(GitHub Pages, deployed by CI)*
+> **[▶ Play it in your browser](https://karim-emam.github.io/neon_void/)** *(GitHub Pages, deployed by CI)*
 
 <!-- TODO: record a gameplay GIF and drop it here -->
 <!-- ![gameplay](docs/gameplay.gif) -->
