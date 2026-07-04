@@ -21,7 +21,7 @@ import 'level_theme.dart';
 
 enum GameState { menu, playing, paused, gameOver, victory }
 
-class NeonVoidGame extends FlameGame
+class AstroNovaGame extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
   /// Logical resolution: portrait 1:2. The viewport letterboxes everything
   /// else, so gameplay is identical on phones, desktop, and web.
@@ -243,10 +243,10 @@ class NeonVoidGame extends FlameGame
 /// Invisible full-world pad that translates drags into player movement.
 /// Lives in the world so drag deltas arrive already in world coordinates.
 class _DragPad extends PositionComponent
-    with DragCallbacks, HasGameReference<NeonVoidGame> {
+    with DragCallbacks, HasGameReference<AstroNovaGame> {
   _DragPad()
       : super(
-          size: Vector2(NeonVoidGame.worldWidth, NeonVoidGame.worldHeight),
+          size: Vector2(AstroNovaGame.worldWidth, AstroNovaGame.worldHeight),
           position: Vector2.zero(),
           priority: -1,
         );

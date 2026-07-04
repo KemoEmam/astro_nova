@@ -6,14 +6,14 @@ import 'components/effects.dart';
 import 'components/enemy_bullet.dart';
 import 'components/power_up.dart';
 import 'level_theme.dart';
-import 'neon_void_game.dart';
+import 'astro_nova_game.dart';
 
 enum LevelPhase { intro, waves, bossIntro, boss, cleared }
 
 /// Drives the 10-level campaign: wave phase with a visible progress bar,
 /// then a cinematic boss intro, the boss fight, a clear banner, and on to
 /// the next level (or victory after level 10).
-class LevelManager extends Component with HasGameReference<NeonVoidGame> {
+class LevelManager extends Component with HasGameReference<AstroNovaGame> {
   static const maxLevel = 10;
 
   LevelPhase phase = LevelPhase.intro;
@@ -114,7 +114,7 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
       game.weaponDroppedThisLevel = true;
       game.spawn(PowerUp(
         type: PowerUpType.weapon,
-        position: Vector2(NeonVoidGame.worldWidth / 2, 60),
+        position: Vector2(AstroNovaGame.worldWidth / 2, 60),
       ));
     }
   }
@@ -124,7 +124,7 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
     _bossCount = lineup.length;
 
     final n = lineup.length;
-    final laneWidth = NeonVoidGame.worldWidth / n;
+    final laneWidth = AstroNovaGame.worldWidth / n;
     final hpScale = switch (n) { 1 => 1.0, 2 => 0.62, _ => 0.48 };
     for (var i = 0; i < n; i++) {
       game.spawn(Boss(
@@ -167,8 +167,8 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
     game.spawn(BossCore(
       relicLevel: game.level.value,
       position: Vector2(
-        position.x.clamp(30, NeonVoidGame.worldWidth - 30),
-        position.y.clamp(60, NeonVoidGame.worldHeight / 2),
+        position.x.clamp(30, AstroNovaGame.worldWidth - 30),
+        position.y.clamp(60, AstroNovaGame.worldHeight / 2),
       ),
     ));
 

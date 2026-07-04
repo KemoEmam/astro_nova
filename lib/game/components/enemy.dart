@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 import '../palette.dart';
 import 'bullet.dart';
 import 'explosion.dart';
@@ -45,7 +45,7 @@ enum EnemyType {
 }
 
 class Enemy extends PositionComponent
-    with HasGameReference<NeonVoidGame>
+    with HasGameReference<AstroNovaGame>
     implements Damageable {
   Enemy({
     required this.type,
@@ -91,9 +91,9 @@ class Enemy extends PositionComponent
       default:
         position.y += type.speed * speedMultiplier * dt;
     }
-    position.x = position.x.clamp(type.radius, NeonVoidGame.worldWidth - type.radius);
+    position.x = position.x.clamp(type.radius, AstroNovaGame.worldWidth - type.radius);
 
-    if (position.y > NeonVoidGame.worldHeight + height) {
+    if (position.y > AstroNovaGame.worldHeight + height) {
       removeFromParent();
     }
   }

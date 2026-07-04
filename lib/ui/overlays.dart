@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../game/buffs.dart';
 import '../game/components/boss.dart';
 import '../game/level_manager.dart';
-import '../game/neon_void_game.dart';
+import '../game/astro_nova_game.dart';
 import '../game/palette.dart' as game_palette;
 
 const _accent = Color(0xFF00E5FF);
@@ -42,7 +42,7 @@ class _NeonButton extends StatelessWidget {
 class MenuOverlay extends StatelessWidget {
   const MenuOverlay({super.key, required this.game});
 
-  final NeonVoidGame game;
+  final AstroNovaGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +50,7 @@ class MenuOverlay extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('NEON VOID', style: _neon(52, weight: FontWeight.bold)),
+          Text('ASTRONOVA', style: _neon(52, weight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
             '10 levels · 10 bosses · one run',
@@ -80,7 +80,7 @@ class MenuOverlay extends StatelessWidget {
 class HudOverlay extends StatelessWidget {
   const HudOverlay({super.key, required this.game});
 
-  final NeonVoidGame game;
+  final AstroNovaGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +167,7 @@ class HudOverlay extends StatelessWidget {
 class _BuffSidebar extends StatelessWidget {
   const _BuffSidebar({required this.game});
 
-  final NeonVoidGame game;
+  final AstroNovaGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +230,7 @@ class _BuffSidebar extends StatelessWidget {
 class _CampaignMap extends StatefulWidget {
   const _CampaignMap({required this.game});
 
-  final NeonVoidGame game;
+  final AstroNovaGame game;
 
   @override
   State<_CampaignMap> createState() => _CampaignMapState();
@@ -402,7 +402,7 @@ class _CampaignMapState extends State<_CampaignMap>
 class _LevelBar extends StatelessWidget {
   const _LevelBar({required this.game});
 
-  final NeonVoidGame game;
+  final AstroNovaGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -464,7 +464,7 @@ class _LevelBar extends StatelessWidget {
 class PauseOverlay extends StatelessWidget {
   const PauseOverlay({super.key, required this.game});
 
-  final NeonVoidGame game;
+  final AstroNovaGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -487,7 +487,7 @@ class PauseOverlay extends StatelessWidget {
 class GameOverOverlay extends StatelessWidget {
   const GameOverOverlay({super.key, required this.game});
 
-  final NeonVoidGame game;
+  final AstroNovaGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -530,7 +530,7 @@ class GameOverOverlay extends StatelessWidget {
 class VictoryOverlay extends StatelessWidget {
   const VictoryOverlay({super.key, required this.game});
 
-  final NeonVoidGame game;
+  final AstroNovaGame game;
 
   @override
   Widget build(BuildContext context) {

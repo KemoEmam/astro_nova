@@ -1,8 +1,8 @@
-# Neon Void 🚀
+# ASTRONOVA 🚀
 
 A neon-styled vertical space shooter built with **Flutter** and the **[Flame](https://flame-engine.org/) game engine**. All graphics are vector-rendered in code — no sprite assets, just `Canvas`, glow effects, and particles.
 
-> **[▶ Play it in your browser](https://kemoemam.github.io/neon_void/)** *(GitHub Pages, deployed by CI)*
+> **[▶ Play it in your browser](https://kemoemam.github.io/astro_nova/)** *(GitHub Pages, deployed by CI)*
 
 <!-- TODO: record a gameplay GIF and drop it here -->
 <!-- ![gameplay](docs/gameplay.gif) -->
@@ -34,7 +34,7 @@ The interesting part for fellow devs — how the game is put together:
 lib/
 ├── main.dart                     # GameWidget + overlay routing
 ├── game/
-│   ├── neon_void_game.dart       # FlameGame: camera, run lifecycle, notifiers
+│   ├── astro_nova_game.dart       # FlameGame: camera, run lifecycle, notifiers
 │   ├── level_manager.dart        # campaign state machine (waves → boss → clear)
 │   ├── level_theme.dart          # 10 per-level visual themes
 │   ├── weapon.dart               # 30 generated weapon tiers + 5 shield tiers

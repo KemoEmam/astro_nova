@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 
 class _Star {
   _Star(this.position, this.speed, this.radius, this.layer);
@@ -16,7 +16,7 @@ class _Star {
 
 /// Three-layer parallax starfield. Stars scroll downward at layer-specific
 /// speeds and wrap back to the top; colors follow the current level theme.
-class Starfield extends Component with HasGameReference<NeonVoidGame> {
+class Starfield extends Component with HasGameReference<AstroNovaGame> {
   Starfield({this.starsPerLayer = 40}) : super(priority: -5);
 
   final int starsPerLayer;
@@ -35,8 +35,8 @@ class Starfield extends Component with HasGameReference<NeonVoidGame> {
       for (var i = 0; i < starsPerLayer; i++) {
         _stars.add(_Star(
           Vector2(
-            _random.nextDouble() * NeonVoidGame.worldWidth,
-            _random.nextDouble() * NeonVoidGame.worldHeight,
+            _random.nextDouble() * AstroNovaGame.worldWidth,
+            _random.nextDouble() * AstroNovaGame.worldHeight,
           ),
           _layers[layer].speed * (0.8 + _random.nextDouble() * 0.4),
           _layers[layer].radius,
@@ -50,9 +50,9 @@ class Starfield extends Component with HasGameReference<NeonVoidGame> {
   void update(double dt) {
     for (final star in _stars) {
       star.position.y += star.speed * dt;
-      if (star.position.y > NeonVoidGame.worldHeight) {
+      if (star.position.y > AstroNovaGame.worldHeight) {
         star.position.y = 0;
-        star.position.x = _random.nextDouble() * NeonVoidGame.worldWidth;
+        star.position.x = _random.nextDouble() * AstroNovaGame.worldWidth;
       }
     }
   }

@@ -6,7 +6,7 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/painting.dart' show FontWeight, TextStyle;
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 import '../palette.dart';
 import '../weapon.dart';
 
@@ -20,7 +20,7 @@ enum PowerUpType {
   final String glyph;
 }
 
-class PowerUp extends PositionComponent with HasGameReference<NeonVoidGame> {
+class PowerUp extends PositionComponent with HasGameReference<AstroNovaGame> {
   PowerUp({required this.type, required Vector2 position})
       : super(position: position, size: Vector2.all(28), anchor: Anchor.center);
 
@@ -35,7 +35,7 @@ class PowerUp extends PositionComponent with HasGameReference<NeonVoidGame> {
   /// Drops get rarer both as the campaign advances and as the player's
   /// upgrades stack up, so the power curve stays under control while early
   /// levels shower the player with toys.
-  static void maybeDrop(NeonVoidGame game, Vector2 position) {
+  static void maybeDrop(AstroNovaGame game, Vector2 position) {
     final level = game.level.value;
     final weaponLevel = game.weaponLevel.value;
     final shieldLevel = game.player?.shieldLevel ?? 0;
@@ -63,7 +63,7 @@ class PowerUp extends PositionComponent with HasGameReference<NeonVoidGame> {
     _drop(game, type, position);
   }
 
-  static void _drop(NeonVoidGame game, PowerUpType type, Vector2 position) {
+  static void _drop(AstroNovaGame game, PowerUpType type, Vector2 position) {
     if (type == PowerUpType.weapon) {
       game.weaponDroppedThisLevel = true;
       game.killsSinceWeaponDrop = 0;
@@ -90,7 +90,7 @@ class PowerUp extends PositionComponent with HasGameReference<NeonVoidGame> {
       }
     }
 
-    if (position.y > NeonVoidGame.worldHeight + height) {
+    if (position.y > AstroNovaGame.worldHeight + height) {
       removeFromParent();
     }
   }

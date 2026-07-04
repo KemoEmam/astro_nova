@@ -3,11 +3,11 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 
 /// Boss projectile. The player handles the collision side.
 class EnemyBullet extends PositionComponent
-    with HasGameReference<NeonVoidGame> {
+    with HasGameReference<AstroNovaGame> {
   EnemyBullet({
     required Vector2 position,
     required this.velocity,
@@ -25,10 +25,10 @@ class EnemyBullet extends PositionComponent
   @override
   void update(double dt) {
     position += velocity * dt;
-    if (position.y > NeonVoidGame.worldHeight + 30 ||
+    if (position.y > AstroNovaGame.worldHeight + 30 ||
         position.y < -30 ||
         position.x < -30 ||
-        position.x > NeonVoidGame.worldWidth + 30) {
+        position.x > AstroNovaGame.worldWidth + 30) {
       removeFromParent();
     }
   }

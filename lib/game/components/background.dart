@@ -2,15 +2,15 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 
 /// Full-screen backdrop that smoothly lerps to the current level theme's
 /// background color, so level transitions feel like flying into a new region.
 class Background extends PositionComponent
-    with HasGameReference<NeonVoidGame> {
+    with HasGameReference<AstroNovaGame> {
   Background()
       : super(
-          size: Vector2(NeonVoidGame.worldWidth, NeonVoidGame.worldHeight),
+          size: Vector2(AstroNovaGame.worldWidth, AstroNovaGame.worldHeight),
           priority: -10,
         );
 

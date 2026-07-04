@@ -1,31 +1,31 @@
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:neon_void/game/components/boss.dart';
-import 'package:neon_void/game/components/boss_core.dart';
-import 'package:neon_void/game/components/bullet.dart';
-import 'package:neon_void/game/components/enemy.dart';
-import 'package:neon_void/game/components/power_up.dart';
-import 'package:neon_void/game/level_manager.dart';
-import 'package:neon_void/game/level_theme.dart';
-import 'package:neon_void/game/neon_void_game.dart';
-import 'package:neon_void/game/weapon.dart';
+import 'package:astro_nova/game/components/boss.dart';
+import 'package:astro_nova/game/components/boss_core.dart';
+import 'package:astro_nova/game/components/bullet.dart';
+import 'package:astro_nova/game/components/enemy.dart';
+import 'package:astro_nova/game/components/power_up.dart';
+import 'package:astro_nova/game/level_manager.dart';
+import 'package:astro_nova/game/level_theme.dart';
+import 'package:astro_nova/game/astro_nova_game.dart';
+import 'package:astro_nova/game/weapon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<NeonVoidGame> pumpGame(WidgetTester tester) async {
-  final game = NeonVoidGame();
+Future<AstroNovaGame> pumpGame(WidgetTester tester) async {
+  final game = AstroNovaGame();
   await tester.pumpWidget(
     GameWidget(
       game: game,
       overlayBuilderMap: {
         for (final name in [
-          NeonVoidGame.overlayMenu,
-          NeonVoidGame.overlayHud,
-          NeonVoidGame.overlayPause,
-          NeonVoidGame.overlayGameOver,
-          NeonVoidGame.overlayVictory,
+          AstroNovaGame.overlayMenu,
+          AstroNovaGame.overlayHud,
+          AstroNovaGame.overlayPause,
+          AstroNovaGame.overlayGameOver,
+          AstroNovaGame.overlayVictory,
         ])
-          name: (_, NeonVoidGame _) => const SizedBox(),
+          name: (_, AstroNovaGame _) => const SizedBox(),
       },
     ),
   );
@@ -48,7 +48,7 @@ void main() {
       (tester) async {
     final game = await pumpGame(tester);
     expect(game.state, GameState.menu);
-    expect(game.overlays.isActive(NeonVoidGame.overlayMenu), isTrue);
+    expect(game.overlays.isActive(AstroNovaGame.overlayMenu), isTrue);
   });
 
   testWidgets('startGame resets the run and switches to the HUD',
@@ -59,9 +59,9 @@ void main() {
 
     expect(game.state, GameState.playing);
     expect(game.player, isNotNull);
-    expect(game.overlays.isActive(NeonVoidGame.overlayHud), isTrue);
-    expect(game.overlays.isActive(NeonVoidGame.overlayMenu), isFalse);
-    expect(game.lives.value, NeonVoidGame.startingLives);
+    expect(game.overlays.isActive(AstroNovaGame.overlayHud), isTrue);
+    expect(game.overlays.isActive(AstroNovaGame.overlayMenu), isFalse);
+    expect(game.lives.value, AstroNovaGame.startingLives);
     expect(game.score.value, 0);
     expect(game.level.value, 1);
     expect(game.weaponLevel.value, 1);
@@ -201,12 +201,12 @@ void main() {
     game.startGame();
     game.update(0);
 
-    for (var i = 0; i < NeonVoidGame.startingLives; i++) {
+    for (var i = 0; i < AstroNovaGame.startingLives; i++) {
       game.loseLife();
     }
     expect(game.state, GameState.gameOver);
-    expect(game.overlays.isActive(NeonVoidGame.overlayGameOver), isTrue);
-    expect(game.overlays.isActive(NeonVoidGame.overlayHud), isFalse);
+    expect(game.overlays.isActive(AstroNovaGame.overlayGameOver), isTrue);
+    expect(game.overlays.isActive(AstroNovaGame.overlayHud), isFalse);
   });
 
   testWidgets('victory flow triggers after clearing level 10', (tester) async {
@@ -217,6 +217,6 @@ void main() {
     game.victory();
 
     expect(game.state, GameState.victory);
-    expect(game.overlays.isActive(NeonVoidGame.overlayVictory), isTrue);
+    expect(game.overlays.isActive(AstroNovaGame.overlayVictory), isTrue);
   });
 }

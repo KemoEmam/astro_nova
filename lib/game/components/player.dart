@@ -6,7 +6,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/painting.dart' show HSVColor;
 import 'package:flutter/services.dart';
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 import '../palette.dart';
 import '../weapon.dart';
 import 'boss.dart';
@@ -22,14 +22,14 @@ class Player extends PositionComponent
     with
         KeyboardHandler,
         CollisionCallbacks,
-        HasGameReference<NeonVoidGame> {
+        HasGameReference<AstroNovaGame> {
   Player()
       : super(
           size: Vector2(36, 42),
           anchor: Anchor.center,
           position: Vector2(
-            NeonVoidGame.worldWidth / 2,
-            NeonVoidGame.worldHeight - 90,
+            AstroNovaGame.worldWidth / 2,
+            AstroNovaGame.worldHeight - 90,
           ),
           priority: 20,
         );
@@ -64,8 +64,8 @@ class Player extends PositionComponent
     position.clamp(
       Vector2(width / 2, height / 2),
       Vector2(
-        NeonVoidGame.worldWidth - width / 2,
-        NeonVoidGame.worldHeight - height / 2,
+        AstroNovaGame.worldWidth - width / 2,
+        AstroNovaGame.worldHeight - height / 2,
       ),
     );
 

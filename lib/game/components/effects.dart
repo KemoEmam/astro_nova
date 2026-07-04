@@ -4,12 +4,12 @@ import 'dart:ui' hide TextStyle;
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart' show FontWeight, TextStyle;
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 
 /// Short-lived text that rises and fades — used for power-up names and
 /// score call-outs.
 class FloatingText extends PositionComponent
-    with HasGameReference<NeonVoidGame> {
+    with HasGameReference<AstroNovaGame> {
   FloatingText(
     this.text, {
     required Vector2 position,
@@ -49,14 +49,14 @@ class FloatingText extends PositionComponent
 /// while a glowing title pulses in the middle. Used for boss warnings,
 /// level intros, and level-clear moments.
 class CinematicBanner extends PositionComponent
-    with HasGameReference<NeonVoidGame> {
+    with HasGameReference<AstroNovaGame> {
   CinematicBanner({
     required this.title,
     this.subtitle = '',
     required this.color,
     this.lifespan = 2.2,
     this.flashing = false,
-  }) : super(priority: 60, size: Vector2(NeonVoidGame.worldWidth, NeonVoidGame.worldHeight));
+  }) : super(priority: 60, size: Vector2(AstroNovaGame.worldWidth, AstroNovaGame.worldHeight));
 
   final String title;
   final String subtitle;
@@ -148,7 +148,7 @@ class ShockwaveRing extends PositionComponent {
 
 /// Camera shake driven by decaying random jitter on the viewfinder.
 /// Lives directly on the game (not the world) so it survives run resets.
-class CameraShake extends Component with HasGameReference<NeonVoidGame> {
+class CameraShake extends Component with HasGameReference<AstroNovaGame> {
   double _intensity = 0;
   final _random = Random();
 

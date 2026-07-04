@@ -4,12 +4,12 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 
 /// Boss-only reward: exactly one core drops per boss fight (when the last
 /// boss of the level dies). Collecting it grants that level's unique
 /// permanent run-buff. The player handles the collision side.
-class BossCore extends PositionComponent with HasGameReference<NeonVoidGame> {
+class BossCore extends PositionComponent with HasGameReference<AstroNovaGame> {
   BossCore({required Vector2 position, required this.relicLevel})
       : super(position: position, size: Vector2.all(34), anchor: Anchor.center, priority: 25);
 
@@ -43,7 +43,7 @@ class BossCore extends PositionComponent with HasGameReference<NeonVoidGame> {
       }
     }
 
-    if (position.y > NeonVoidGame.worldHeight + height) {
+    if (position.y > AstroNovaGame.worldHeight + height) {
       removeFromParent();
     }
   }

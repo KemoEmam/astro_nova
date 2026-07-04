@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 import 'bullet.dart';
 import 'enemy.dart';
 import 'enemy_bullet.dart';
@@ -59,16 +59,16 @@ const bossSpecs = <BossSpec>[
 ];
 
 class Boss extends PositionComponent
-    with HasGameReference<NeonVoidGame>
+    with HasGameReference<AstroNovaGame>
     implements Damageable {
   Boss({
     required this.spec,
     double? centerX,
     this.amplitude = 130,
     this.hpScale = 1.0,
-  })  : centerX = centerX ?? NeonVoidGame.worldWidth / 2,
+  })  : centerX = centerX ?? AstroNovaGame.worldWidth / 2,
         super(
-          position: Vector2(centerX ?? NeonVoidGame.worldWidth / 2, -80),
+          position: Vector2(centerX ?? AstroNovaGame.worldWidth / 2, -80),
           size: Vector2.all(spec.radius * 2),
           anchor: Anchor.center,
           priority: 10,
@@ -161,7 +161,7 @@ class Boss extends PositionComponent
         if (_teleportTimer >= 2.4) {
           _teleportTimer = 0;
           position.x = (cx + (_random.nextDouble() * 2 - 1) * amp)
-              .clamp(spec.radius, NeonVoidGame.worldWidth - spec.radius);
+              .clamp(spec.radius, AstroNovaGame.worldWidth - spec.radius);
           position.y = _baseY + _random.nextDouble() * 60;
           game.shake(3);
         }

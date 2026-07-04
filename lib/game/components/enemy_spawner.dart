@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 import 'enemy.dart';
 
 /// Level-driven spawner. The [LevelManager] toggles [enabled] (off during
@@ -11,7 +11,7 @@ import 'enemy.dart';
 /// Difficulty ramps smoothly across the whole campaign: spawn interval,
 /// enemy speed, spawn mix, and bonus HP all scale with the level while
 /// staying beatable — the player's weapon curve grows faster.
-class EnemySpawner extends Component with HasGameReference<NeonVoidGame> {
+class EnemySpawner extends Component with HasGameReference<AstroNovaGame> {
   final _random = Random();
   double _sinceLastSpawn = 0;
 
@@ -48,7 +48,7 @@ class EnemySpawner extends Component with HasGameReference<NeonVoidGame> {
     game.spawn(Enemy(
       type: type,
       position: Vector2(
-        margin + _random.nextDouble() * (NeonVoidGame.worldWidth - margin * 2),
+        margin + _random.nextDouble() * (AstroNovaGame.worldWidth - margin * 2),
         -type.radius * 2,
       ),
       bonusHp: _bonusHp,

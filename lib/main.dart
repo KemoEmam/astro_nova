@@ -1,34 +1,34 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import 'game/neon_void_game.dart';
+import 'game/astro_nova_game.dart';
 import 'game/palette.dart';
 import 'ui/overlays.dart';
 
 void main() {
-  runApp(const NeonVoidApp());
+  runApp(const AstroNovaApp());
 }
 
-class NeonVoidApp extends StatelessWidget {
-  const NeonVoidApp({super.key});
+class AstroNovaApp extends StatelessWidget {
+  const AstroNovaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Neon Void',
+      title: 'ASTRONOVA',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true),
       home: Scaffold(
         backgroundColor: Palette.background,
-        body: GameWidget<NeonVoidGame>.controlled(
-          gameFactory: NeonVoidGame.new,
+        body: GameWidget<AstroNovaGame>.controlled(
+          gameFactory: AstroNovaGame.new,
           overlayBuilderMap: {
-            NeonVoidGame.overlayMenu: (_, game) => MenuOverlay(game: game),
-            NeonVoidGame.overlayHud: (_, game) => HudOverlay(game: game),
-            NeonVoidGame.overlayPause: (_, game) => PauseOverlay(game: game),
-            NeonVoidGame.overlayGameOver: (_, game) =>
+            AstroNovaGame.overlayMenu: (_, game) => MenuOverlay(game: game),
+            AstroNovaGame.overlayHud: (_, game) => HudOverlay(game: game),
+            AstroNovaGame.overlayPause: (_, game) => PauseOverlay(game: game),
+            AstroNovaGame.overlayGameOver: (_, game) =>
                 GameOverOverlay(game: game),
-            NeonVoidGame.overlayVictory: (_, game) =>
+            AstroNovaGame.overlayVictory: (_, game) =>
                 VictoryOverlay(game: game),
           },
         ),

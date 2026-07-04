@@ -1,6 +1,6 @@
 {
-    "name": "neon_void",
-    "short_name": "neon_void",
+    "name": "astro_nova",
+    "short_name": "astro_nova",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

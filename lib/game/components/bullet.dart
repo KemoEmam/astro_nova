@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import '../neon_void_game.dart';
+import '../astro_nova_game.dart';
 import '../palette.dart';
 import '../weapon.dart';
 
@@ -16,7 +16,7 @@ abstract interface class Damageable {
 }
 
 class Bullet extends PositionComponent
-    with CollisionCallbacks, HasGameReference<NeonVoidGame> {
+    with CollisionCallbacks, HasGameReference<AstroNovaGame> {
   Bullet({
     required Vector2 position,
     Vector2? direction,
@@ -57,9 +57,9 @@ class Bullet extends PositionComponent
     position += _velocity * dt;
     angle = atan2(_velocity.x, -_velocity.y);
     if (position.y < -30 ||
-        position.y > NeonVoidGame.worldHeight + 30 ||
+        position.y > AstroNovaGame.worldHeight + 30 ||
         position.x < -30 ||
-        position.x > NeonVoidGame.worldWidth + 30) {
+        position.x > AstroNovaGame.worldWidth + 30) {
       removeFromParent();
     }
   }

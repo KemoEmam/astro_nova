@@ -37,7 +37,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: flutter build web --release --base-href /neon_void/
+      - run: flutter build web --release --base-href /astro_nova/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
