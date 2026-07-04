@@ -113,7 +113,7 @@ class Boss extends PositionComponent
     final growth = 1 +
         0.05 * (level - 1) +
         (level > 3 ? 0.03 * (level - 3) : 0) +
-        (level > 5 ? 0.05 * (level - 5) : 0);
+        (level >= 5 ? 0.08 * (level - 4) : 0);
     _maxHp = (spec.hp * hpScale * 0.92 * growth).round();
     _hp = _maxHp;
   }

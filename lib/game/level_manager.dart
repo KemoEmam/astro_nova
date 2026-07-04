@@ -21,8 +21,8 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
   int _bossCount = 1;
 
   /// Wave phase length: very short early so the campaign hooks fast, growing
-  /// toward the level-10 maximum (~10s at level 1, ~30s at level 10).
-  double get _waveDuration => 8.0 + game.level.value * 2.2;
+  /// toward the level-10 maximum (~10s at level 1, ~29s at level 10).
+  double get _waveDuration => 7.5 + game.level.value * 2.2;
 
   @override
   void onMount() {
