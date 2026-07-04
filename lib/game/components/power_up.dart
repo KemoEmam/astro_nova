@@ -64,6 +64,16 @@ class PowerUp extends PositionComponent with HasGameReference<NeonVoidGame> {
   void update(double dt) {
     _age += dt;
     position.y += _fallSpeed * dt;
+
+    // MAGNET CORE relic: pickups get pulled toward the player.
+    final playerPos = game.player?.position;
+    if (game.magnet && playerPos != null) {
+      final toPlayer = playerPos - position;
+      if (toPlayer.length < 400) {
+        position += toPlayer.normalized() * 240 * dt;
+      }
+    }
+
     if (position.y > NeonVoidGame.worldHeight + height) {
       removeFromParent();
     }

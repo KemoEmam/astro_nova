@@ -3,12 +3,14 @@ import 'dart:ui';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flutter/painting.dart' show HSVColor;
 import 'package:flutter/services.dart';
 
 import '../neon_void_game.dart';
 import '../palette.dart';
 import '../weapon.dart';
 import 'boss.dart';
+import 'boss_core.dart';
 import 'bullet.dart';
 import 'effects.dart';
 import 'enemy.dart';
@@ -40,6 +42,7 @@ class Player extends PositionComponent
   double _fireCooldown = 0;
   double _invulnerable = 0;
   double _regenTimer = 0;
+  double _time = 0;
 
   /// Shield tier collected so far (0-5); determines charge capacity + perks.
   int shieldLevel = 0;
@@ -56,6 +59,7 @@ class Player extends PositionComponent
 
   @override
   void update(double dt) {
+    _time += dt;
     position += _keyboardDirection.normalized() * _moveSpeed * dt;
     position.clamp(
       Vector2(width / 2, height / 2),
@@ -79,7 +83,7 @@ class Player extends PositionComponent
     _fireCooldown -= dt;
     if (_fireCooldown <= 0) {
       _fire();
-      _fireCooldown = _weapon.fireInterval;
+      _fireCooldown = _weapon.fireInterval * game.fireRateScale;
     }
   }
 
@@ -96,7 +100,7 @@ class Player extends PositionComponent
       game.spawn(Bullet(
         position: nose + Vector2(shot.dx, shot.dy),
         direction: Vector2(sin(rad), -cos(rad)),
-        damage: shot.damage,
+        damage: shot.damage + game.bonusDamage,
         pierce: shot.pierce,
         homing: shot.homing,
         color: weapon.color,
@@ -141,7 +145,21 @@ class Player extends PositionComponent
       _takeDamage();
     } else if (other is PowerUp) {
       _collect(other);
+    } else if (other is BossCore) {
+      final relicName = game.applyBossRelic(other.relicLevel);
+      game.addScore(250);
+      _announce(relicName, const Color(0xFFFFD740));
+      game.shake(4);
+      other.removeFromParent();
     }
+  }
+
+  /// GUARD CORE relic: bumps the shield tier (or refills charges at cap).
+  void grantShieldTier() {
+    if (shieldLevel < maxShieldLevel) {
+      shieldLevel++;
+    }
+    _setShieldCharges(shieldLevel);
   }
 
   void _collect(PowerUp powerUp) {
@@ -214,6 +232,9 @@ class Player extends PositionComponent
     game.loseLife();
   }
 
+  /// At max shield tier the ship transforms: hue-cycling hull + aura.
+  bool get _isAscended => shieldLevel >= maxShieldLevel;
+
   @override
   void render(Canvas canvas) {
     // Blink while invulnerable.
@@ -221,6 +242,22 @@ class Player extends PositionComponent
 
     final w = width;
     final h = height;
+    final center = Offset(w / 2, h / 2);
+    final hullColor = _isAscended
+        ? HSVColor.fromAHSV(1, (_time * 90) % 360, 0.55, 1).toColor()
+        : Palette.player;
+
+    // ETERNAL AEGIS aura: slow-breathing halo behind the ship.
+    if (_isAscended) {
+      canvas.drawCircle(
+        center,
+        w * (1.05 + 0.1 * sin(_time * 3)),
+        Paint()
+          ..color = hullColor.withValues(alpha: 0.22)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14),
+      );
+    }
+
     final ship = Path()
       ..moveTo(w / 2, 0)
       ..lineTo(w, h * 0.85)
@@ -231,37 +268,39 @@ class Player extends PositionComponent
     canvas.drawPath(
       ship,
       Paint()
-        ..color = Palette.player.withValues(alpha: 0.5)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+        ..color = hullColor.withValues(alpha: 0.5)
+        ..maskFilter =
+            MaskFilter.blur(BlurStyle.normal, _isAscended ? 12 : 8),
     );
     canvas.drawPath(
       ship,
       Paint()
-        ..color = Palette.player
+        ..color = hullColor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5,
+        ..strokeWidth = _isAscended ? 3 : 2.5,
     );
     // Engine core.
     canvas.drawCircle(
       Offset(w / 2, h * 0.55),
-      3.5,
-      Paint()..color = Palette.playerCore,
+      _isAscended ? 4.5 : 3.5,
+      Paint()..color = _isAscended ? hullColor : Palette.playerCore,
     );
 
-    // Shield ring: one arc segment per remaining charge.
+    // Shield ring: one orbiting arc segment per remaining charge.
     if (_shieldCharges > 0) {
-      final center = Offset(w / 2, h / 2);
       final radius = w * 0.85;
       const gap = 0.18;
       final sweep = (2 * pi / max(1, shieldLevel)) - gap;
+      final spin = _time * (_isAscended ? 2.2 : 1.2);
+      final arcColor = _isAscended ? hullColor : Palette.shield;
       for (var i = 0; i < _shieldCharges; i++) {
         canvas.drawArc(
           Rect.fromCircle(center: center, radius: radius),
-          -pi / 2 + i * (sweep + gap),
+          -pi / 2 + spin + i * (sweep + gap),
           sweep,
           false,
           Paint()
-            ..color = Palette.shield.withValues(alpha: 0.8)
+            ..color = arcColor.withValues(alpha: 0.85)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2.5
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),

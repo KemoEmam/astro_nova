@@ -18,7 +18,9 @@ A **10-level campaign designed to be finished in one sitting** (~10 minutes): sh
 
 **30 weapon tiers** — generated from a progression formula so every pickup changes something real: straight barrels, widening spread pairs, homing missiles, piercing, damage, and fire rate each unlock on their own schedule, from Pulse Shot all the way to the **Void Laser**. Bullet color and shape (bolt → diamond → orb → beam) evolve through the tiers. Getting hit knocks you back three tiers.
 
-**5 shield tiers** — Aegis I/II (charges), Nova Guard / Nova Guard+ (absorbing a hit detonates a shockwave), Eternal Aegis (charges regenerate).
+**5 shield tiers** — Aegis I/II (orbiting charge arcs), Nova Guard / Nova Guard+ (absorbing a hit detonates a shockwave), Eternal Aegis (charges regenerate — and the ship *ascends*: hue-cycling hull with a breathing aura).
+
+**Boss Cores** — every boss fight drops exactly one golden relic core granting that level's unique **permanent** run-buff: Overclock (fire rate), Magnet (pickup attraction), Hull (max lives), Amp (bullet damage), Greed (score ×1.5), Guard (shield tier), and the Void Heart.
 
 **Drop economy** — power-up drop rates fall as the campaign advances *and* as your upgrades stack, so early levels shower you with toys and the endgame stays tense.
 

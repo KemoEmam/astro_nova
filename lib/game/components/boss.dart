@@ -102,9 +102,10 @@ class Boss extends PositionComponent
   @override
   void onLoad() {
     add(CircleHitbox(collisionType: CollisionType.passive));
-    // Extra +5% HP per campaign level on top of the per-boss spec values.
-    _maxHp =
-        (spec.hp * hpScale * (1 + 0.05 * (game.level.value - 1))).round();
+    // Extra +5% HP per campaign level on top of the per-boss spec values,
+    // shaved by a global 0.92 to keep fights snappy.
+    _maxHp = (spec.hp * hpScale * 0.92 * (1 + 0.05 * (game.level.value - 1)))
+        .round();
     _hp = _maxHp;
   }
 
@@ -220,7 +221,7 @@ class Boss extends PositionComponent
       speed: 260,
     ));
     removeFromParent();
-    game.levelManager?.onBossDefeated();
+    game.levelManager?.onBossDefeated(position.clone());
   }
 
   @override

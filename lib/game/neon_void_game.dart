@@ -50,6 +50,13 @@ class NeonVoidGame extends FlameGame
   final bossHealth = ValueNotifier<double?>(null);
   final bossName = ValueNotifier<String?>(null);
 
+  // Permanent run-buffs granted by Boss Cores (one unique relic per level).
+  double fireRateScale = 1.0;
+  int bonusDamage = 0;
+  bool magnet = false;
+  double scoreMultiplier = 1.0;
+  int maxLivesCurrent = maxLives;
+
   Player? player;
   EnemySpawner? spawner;
   LevelManager? levelManager;
@@ -106,6 +113,11 @@ class NeonVoidGame extends FlameGame
     shieldCharges.value = 0;
     bossHealth.value = null;
     bossName.value = null;
+    fireRateScale = 1.0;
+    bonusDamage = 0;
+    magnet = false;
+    scoreMultiplier = 1.0;
+    maxLivesCurrent = maxLives;
 
     player = Player();
     spawner = EnemySpawner()..configureForLevel(1);
@@ -125,7 +137,7 @@ class NeonVoidGame extends FlameGame
 
   void addScore(int points) {
     if (state != GameState.playing) return;
-    score.value += points;
+    score.value += (points * scoreMultiplier).round();
   }
 
   void loseLife() {
@@ -136,10 +148,49 @@ class NeonVoidGame extends FlameGame
   }
 
   void healLife() {
-    if (lives.value < maxLives) {
+    if (lives.value < maxLivesCurrent) {
       lives.value++;
     } else {
       addScore(150);
+    }
+  }
+
+  /// Applies the given level's Boss Core relic and returns its name for
+  /// the pickup announcement. One unique permanent buff per level.
+  String applyBossRelic(int relicLevel) {
+    switch (relicLevel) {
+      case 1:
+        fireRateScale *= 0.9;
+        return 'OVERCLOCK CORE';
+      case 2:
+        magnet = true;
+        return 'MAGNET CORE';
+      case 3:
+        maxLivesCurrent++;
+        healLife();
+        return 'HULL CORE';
+      case 4:
+        bonusDamage++;
+        return 'AMP CORE';
+      case 5:
+        scoreMultiplier += 0.5;
+        return 'GREED CORE';
+      case 6:
+        fireRateScale *= 0.9;
+        return 'OVERCLOCK CORE II';
+      case 7:
+        player?.grantShieldTier();
+        return 'GUARD CORE';
+      case 8:
+        bonusDamage++;
+        return 'AMP CORE II';
+      case 9:
+        maxLivesCurrent++;
+        healLife();
+        return 'HULL CORE II';
+      default:
+        addScore(2000);
+        return 'VOID HEART';
     }
   }
 

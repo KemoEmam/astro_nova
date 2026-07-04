@@ -101,7 +101,8 @@ class HudOverlay extends StatelessWidget {
                   valueListenable: game.lives,
                   builder: (_, lives, _) => Row(
                     children: List.generate(
-                      lives.clamp(0, NeonVoidGame.maxLives),
+                      lives.clamp(0, 8), // HULL COREs can raise the cap
+
                       (_) => const Padding(
                         padding: EdgeInsets.only(left: 4),
                         child: Icon(Icons.favorite, color: _accent, size: 18),

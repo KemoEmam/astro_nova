@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neon_void/game/components/boss.dart';
+import 'package:neon_void/game/components/boss_core.dart';
 import 'package:neon_void/game/components/bullet.dart';
 import 'package:neon_void/game/components/enemy.dart';
 import 'package:neon_void/game/level_manager.dart';
@@ -139,11 +140,30 @@ void main() {
     boss.first.takeHit(bossSpecs[0].hp);
     game.update(0);
 
+    // The fight drops exactly one Boss Core.
+    game.update(0);
+    expect(game.runRoot.children.query<BossCore>(), hasLength(1));
+
     // Cleared phase → next level after the banner.
     game.update(2.5);
     game.update(0);
     expect(game.level.value, 2);
     expect(game.state, GameState.playing);
+  });
+
+  testWidgets('boss relics apply permanent run buffs', (tester) async {
+    final game = await pumpGame(tester);
+    game.startGame();
+    game.update(0);
+
+    expect(game.applyBossRelic(1), 'OVERCLOCK CORE');
+    expect(game.fireRateScale, closeTo(0.9, 0.001));
+    expect(game.applyBossRelic(2), 'MAGNET CORE');
+    expect(game.magnet, isTrue);
+    expect(game.applyBossRelic(3), 'HULL CORE');
+    expect(game.maxLivesCurrent, NeonVoidGame.maxLives + 1);
+    expect(game.applyBossRelic(4), 'AMP CORE');
+    expect(game.bonusDamage, 1);
   });
 
   testWidgets('losing all lives ends the game and shows game over',

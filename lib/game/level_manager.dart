@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 
 import 'components/boss.dart';
+import 'components/boss_core.dart';
 import 'components/effects.dart';
 import 'components/enemy_bullet.dart';
 import 'level_theme.dart';
@@ -20,8 +21,8 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
   int _bossesRemaining = 0;
 
   /// Wave phase length: very short early so the campaign hooks fast, growing
-  /// toward the level-10 maximum (~11s at level 1, ~31s at level 10).
-  double get _waveDuration => 9.0 + game.level.value * 2.2;
+  /// toward the level-10 maximum (~10s at level 1, ~30s at level 10).
+  double get _waveDuration => 8.0 + game.level.value * 2.2;
 
   @override
   void onMount() {
@@ -126,7 +127,7 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
     game.bossHealth.value = (total / _bossCount).clamp(0.0, 1.0);
   }
 
-  void onBossDefeated() {
+  void onBossDefeated(Vector2 position) {
     if (phase != LevelPhase.boss) return;
     _bossesRemaining--;
     updateBossBar();
@@ -136,6 +137,15 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
     game.bossName.value = null;
     phase = LevelPhase.cleared;
     _phaseTime = 0;
+
+    // One Boss Core per fight, dropped where the last boss died.
+    game.spawn(BossCore(
+      relicLevel: game.level.value,
+      position: Vector2(
+        position.x.clamp(30, NeonVoidGame.worldWidth - 30),
+        position.y.clamp(60, NeonVoidGame.worldHeight / 2),
+      ),
+    ));
 
     // Clear leftover boss projectiles so the break between levels is safe.
     final leftovers = game.runRoot.children.query<EnemyBullet>().toList();
