@@ -5,27 +5,39 @@ import 'package:flame/components.dart';
 import '../neon_void_game.dart';
 import 'enemy.dart';
 
-/// Spawns enemies on a timer whose interval shrinks as the run goes on,
-/// and shifts the type distribution toward tougher enemies over time.
+/// Level-driven spawner. The [LevelManager] toggles [enabled] (off during
+/// boss fights) and calls [configureForLevel] on every level change.
+///
+/// Difficulty curve: gentle through level 7, a modest bump for 8-10 so the
+/// finale feels earned but stays beatable.
 class EnemySpawner extends Component with HasGameReference<NeonVoidGame> {
   final _random = Random();
-  double _elapsed = 0;
   double _sinceLastSpawn = 0;
 
-  static const _startInterval = 1.1;
-  static const _minInterval = 0.35;
+  bool enabled = false;
+  double _interval = 1.2;
+  double _weaverWeight = 0.12;
+  double _tankWeight = 0.05;
+  int _bonusHp = 0;
+  double _speedMultiplier = 1.0;
 
-  /// Seconds it takes to ramp from start to max difficulty.
-  static const _rampDuration = 90.0;
-
-  double get _difficulty => min(1, _elapsed / _rampDuration);
-
-  double get _interval =>
-      _startInterval - (_startInterval - _minInterval) * _difficulty;
+  void configureForLevel(int level) {
+    if (level <= 7) {
+      _interval = 1.25 - 0.06 * level;
+      _bonusHp = 0;
+      _speedMultiplier = 1.0 + 0.02 * (level - 1);
+    } else {
+      _interval = 0.82 - 0.08 * (level - 7);
+      _bonusHp = 1;
+      _speedMultiplier = 1.15 + 0.05 * (level - 8);
+    }
+    _weaverWeight = 0.10 + 0.03 * level;
+    _tankWeight = 0.04 + 0.02 * level;
+  }
 
   @override
   void update(double dt) {
-    _elapsed += dt;
+    if (!enabled) return;
     _sinceLastSpawn += dt;
     if (_sinceLastSpawn >= _interval) {
       _sinceLastSpawn = 0;
@@ -36,22 +48,21 @@ class EnemySpawner extends Component with HasGameReference<NeonVoidGame> {
   void _spawn() {
     final type = _pickType();
     final margin = type.radius + 4;
-    game.world.add(Enemy(
+    game.spawn(Enemy(
       type: type,
       position: Vector2(
         margin + _random.nextDouble() * (NeonVoidGame.worldWidth - margin * 2),
         -type.radius * 2,
       ),
+      bonusHp: _bonusHp,
+      speedMultiplier: _speedMultiplier,
     ));
   }
 
   EnemyType _pickType() {
-    // Weights drift from all-drifters early to a mixed field late.
-    final weaverWeight = 0.15 + 0.25 * _difficulty;
-    final tankWeight = 0.05 + 0.20 * _difficulty;
     final roll = _random.nextDouble();
-    if (roll < tankWeight) return EnemyType.tank;
-    if (roll < tankWeight + weaverWeight) return EnemyType.weaver;
+    if (roll < _tankWeight) return EnemyType.tank;
+    if (roll < _tankWeight + _weaverWeight) return EnemyType.weaver;
     return EnemyType.drifter;
   }
 }

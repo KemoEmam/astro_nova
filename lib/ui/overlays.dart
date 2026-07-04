@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../game/level_manager.dart';
 import '../game/neon_void_game.dart';
 import '../game/palette.dart' as game_palette;
 
@@ -50,8 +51,13 @@ class MenuOverlay extends StatelessWidget {
           Text('NEON VOID', style: _neon(52, weight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
+            '10 levels · 10 bosses · one run',
+            style: _neon(14, color: Colors.white),
+          ),
+          const SizedBox(height: 4),
+          Text(
             'drag or WASD / arrows to move · auto-fire',
-            style: _neon(13, color: Colors.white70),
+            style: _neon(12, color: Colors.white70),
           ),
           const SizedBox(height: 40),
           _NeonButton(label: 'START', onPressed: game.startGame),
@@ -78,35 +84,135 @@ class HudOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            ValueListenableBuilder<int>(
-              valueListenable: game.score,
-              builder: (_, score, _) =>
-                  Text('$score', style: _neon(26, weight: FontWeight.bold)),
-            ),
-            const Spacer(),
-            ValueListenableBuilder<int>(
-              valueListenable: game.lives,
-              builder: (_, lives, _) => Row(
-                children: List.generate(
-                  lives.clamp(0, NeonVoidGame.startingLives),
-                  (_) => const Padding(
-                    padding: EdgeInsets.only(left: 6),
-                    child: Icon(Icons.favorite, color: _accent, size: 20),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ValueListenableBuilder<int>(
+                  valueListenable: game.score,
+                  builder: (_, score, _) =>
+                      Text('$score', style: _neon(24, weight: FontWeight.bold)),
+                ),
+                const Spacer(),
+                ValueListenableBuilder<int>(
+                  valueListenable: game.lives,
+                  builder: (_, lives, _) => Row(
+                    children: List.generate(
+                      lives.clamp(0, NeonVoidGame.maxLives),
+                      (_) => const Padding(
+                        padding: EdgeInsets.only(left: 4),
+                        child: Icon(Icons.favorite, color: _accent, size: 18),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.pause, color: Colors.white70),
+                  onPressed: game.togglePause,
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            IconButton(
-              icon: const Icon(Icons.pause, color: Colors.white70),
-              onPressed: game.togglePause,
+            const SizedBox(height: 2),
+            _LevelBar(game: game),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                ValueListenableBuilder<int>(
+                  valueListenable: game.weaponLevel,
+                  builder: (_, w, _) => _chip(
+                      'W$w', game_palette.Palette.powerUpWeapon),
+                ),
+                const SizedBox(width: 8),
+                ValueListenableBuilder<int>(
+                  valueListenable: game.shieldCharges,
+                  builder: (_, s, _) => s > 0
+                      ? _chip('S$s', game_palette.Palette.powerUpShield)
+                      : const SizedBox.shrink(),
+                ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _chip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        border: Border.all(color: color.withValues(alpha: 0.8)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+    );
+  }
+}
+
+/// Level progress bar during waves; boss HP bar (with name) during fights.
+class _LevelBar extends StatelessWidget {
+  const _LevelBar({required this.game});
+
+  final NeonVoidGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<double?>(
+      valueListenable: game.bossHealth,
+      builder: (_, bossHp, _) {
+        if (bossHp != null) {
+          return Row(
+            children: [
+              ValueListenableBuilder<String?>(
+                valueListenable: game.bossName,
+                builder: (_, name, _) => Text(
+                  name ?? '',
+                  style: _neon(11, color: const Color(0xFFFF5252)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _bar(bossHp, const Color(0xFFFF5252)),
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            ValueListenableBuilder<int>(
+              valueListenable: game.level,
+              builder: (_, level, _) => Text(
+                'LV $level/${LevelManager.maxLevel}',
+                style: _neon(11, color: Colors.white),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ValueListenableBuilder<double>(
+                valueListenable: game.levelProgress,
+                builder: (_, progress, _) => _bar(progress, _accent),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _bar(double value, Color color) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(3),
+      child: LinearProgressIndicator(
+        value: value,
+        minHeight: 6,
+        backgroundColor: Colors.white10,
+        valueColor: AlwaysStoppedAnimation(color),
       ),
     );
   }
@@ -156,7 +262,10 @@ class GameOverOverlay extends StatelessWidget {
                   weight: FontWeight.bold,
                   color: game_palette.Palette.enemyDrifter),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            Text('REACHED LEVEL ${game.level.value}',
+                style: _neon(14, color: Colors.white70)),
+            const SizedBox(height: 8),
             Text('SCORE  ${game.score.value}', style: _neon(22)),
             if (isNewHighScore) ...[
               const SizedBox(height: 8),
@@ -166,6 +275,38 @@ class GameOverOverlay extends StatelessWidget {
                     _neon(16, color: game_palette.Palette.powerUpWeapon),
               ),
             ],
+            const SizedBox(height: 36),
+            _NeonButton(label: 'PLAY AGAIN', onPressed: game.startGame),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class VictoryOverlay extends StatelessWidget {
+  const VictoryOverlay({super.key, required this.game});
+
+  final NeonVoidGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Colors.black54,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'VOID CLEARED',
+              style: _neon(42,
+                  weight: FontWeight.bold, color: const Color(0xFFEEFF41)),
+            ),
+            const SizedBox(height: 8),
+            Text('ALL 10 BOSSES DEFEATED',
+                style: _neon(14, color: Colors.white)),
+            const SizedBox(height: 16),
+            Text('FINAL SCORE  ${game.score.value}', style: _neon(24)),
             const SizedBox(height: 36),
             _NeonButton(label: 'PLAY AGAIN', onPressed: game.startGame),
           ],

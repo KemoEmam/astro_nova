@@ -7,14 +7,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show KeyEventResult;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'components/background.dart';
+import 'components/boss.dart';
+import 'components/bullet.dart';
+import 'components/effects.dart';
 import 'components/enemy.dart';
 import 'components/enemy_spawner.dart';
 import 'components/player.dart';
-import 'components/power_up.dart';
-import 'components/bullet.dart';
 import 'components/starfield.dart';
+import 'level_manager.dart';
+import 'level_theme.dart';
 
-enum GameState { menu, playing, paused, gameOver }
+enum GameState { menu, playing, paused, gameOver, victory }
 
 class NeonVoidGame extends FlameGame
     with HasCollisionDetection, HasKeyboardHandlerComponents {
@@ -27,17 +31,36 @@ class NeonVoidGame extends FlameGame
   static const overlayHud = 'hud';
   static const overlayPause = 'pause';
   static const overlayGameOver = 'gameOver';
+  static const overlayVictory = 'victory';
 
   static const _highScoreKey = 'highScore';
   static const startingLives = 3;
+  static const maxLives = 4;
 
   GameState state = GameState.menu;
   final score = ValueNotifier<int>(0);
   final lives = ValueNotifier<int>(startingLives);
   final highScore = ValueNotifier<int>(0);
+  final level = ValueNotifier<int>(1);
+  final levelProgress = ValueNotifier<double>(0);
+  final weaponLevel = ValueNotifier<int>(1);
+  final shieldCharges = ValueNotifier<int>(0);
+
+  /// 0..1 while a boss is alive, null otherwise (drives the HUD boss bar).
+  final bossHealth = ValueNotifier<double?>(null);
+  final bossName = ValueNotifier<String?>(null);
 
   Player? player;
-  EnemySpawner? _spawner;
+  EnemySpawner? spawner;
+  LevelManager? levelManager;
+  late final CameraShake _cameraShake;
+
+  /// Per-run container: everything belonging to the current run lives here
+  /// so a restart is a single subtree swap.
+  Component? _runRoot;
+  Component get runRoot => _runRoot!;
+
+  LevelTheme get theme => levelThemes[(level.value - 1).clamp(0, 9)];
 
   @override
   Future<void> onLoad() async {
@@ -47,8 +70,11 @@ class NeonVoidGame extends FlameGame
     camera.viewfinder.anchor = Anchor.topLeft;
     camera.viewfinder.position = Vector2.zero();
 
+    world.add(Background());
     world.add(Starfield());
     world.add(_DragPad());
+    _cameraShake = CameraShake();
+    add(_cameraShake);
 
     final prefs = await SharedPreferences.getInstance();
     highScore.value = prefs.getInt(_highScoreKey) ?? 0;
@@ -56,26 +82,43 @@ class NeonVoidGame extends FlameGame
     overlays.add(overlayMenu);
   }
 
+  void spawn(Component component) => _runRoot?.add(component);
+
+  /// Homing-bullet targets: everything alive that can be damaged.
+  Iterable<Damageable> get targets sync* {
+    final root = _runRoot;
+    if (root == null) return;
+    yield* root.children.query<Enemy>();
+    yield* root.children.query<Boss>();
+  }
+
   void startGame() {
-    // Clear any leftovers from a previous run.
-    world.removeAll(world.children.query<Enemy>());
-    world.removeAll(world.children.query<Bullet>());
-    world.removeAll(world.children.query<PowerUp>());
-    _spawner?.removeFromParent();
-    player?.removeFromParent();
+    _runRoot?.removeFromParent();
+    final root = Component();
+    _runRoot = root;
+    world.add(root);
 
     score.value = 0;
     lives.value = startingLives;
+    level.value = 1;
+    levelProgress.value = 0;
+    weaponLevel.value = 1;
+    shieldCharges.value = 0;
+    bossHealth.value = null;
+    bossName.value = null;
 
     player = Player();
-    _spawner = EnemySpawner();
-    world.add(player!);
-    world.add(_spawner!);
+    spawner = EnemySpawner()..configureForLevel(1);
+    levelManager = LevelManager();
+    root.add(player!);
+    root.add(spawner!);
+    root.add(levelManager!);
 
     state = GameState.playing;
     overlays
       ..remove(overlayMenu)
       ..remove(overlayGameOver)
+      ..remove(overlayVictory)
       ..add(overlayHud);
     resumeEngine();
   }
@@ -88,16 +131,32 @@ class NeonVoidGame extends FlameGame
   void loseLife() {
     lives.value--;
     if (lives.value <= 0) {
-      _gameOver();
+      _endRun(won: false);
     }
   }
 
-  void _gameOver() {
-    state = GameState.gameOver;
+  void healLife() {
+    if (lives.value < maxLives) {
+      lives.value++;
+    } else {
+      addScore(150);
+    }
+  }
+
+  void victory() => _endRun(won: true);
+
+  void shake(double intensity) => _cameraShake.shake(intensity);
+
+  void _endRun({required bool won}) {
+    state = won ? GameState.victory : GameState.gameOver;
     player?.removeFromParent();
     player = null;
-    _spawner?.removeFromParent();
-    _spawner = null;
+    spawner?.removeFromParent();
+    spawner = null;
+    levelManager?.removeFromParent();
+    levelManager = null;
+    bossHealth.value = null;
+    bossName.value = null;
 
     if (score.value > highScore.value) {
       highScore.value = score.value;
@@ -107,7 +166,7 @@ class NeonVoidGame extends FlameGame
 
     overlays
       ..remove(overlayHud)
-      ..add(overlayGameOver);
+      ..add(won ? overlayVictory : overlayGameOver);
   }
 
   void togglePause() {
@@ -145,6 +204,7 @@ class _DragPad extends PositionComponent
       : super(
           size: Vector2(NeonVoidGame.worldWidth, NeonVoidGame.worldHeight),
           position: Vector2.zero(),
+          priority: -1,
         );
 
   @override

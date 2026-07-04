@@ -4,10 +4,11 @@ import 'dart:ui' hide TextStyle;
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
-import 'package:flutter/painting.dart' show TextStyle;
+import 'package:flutter/painting.dart' show FontWeight, TextStyle;
 
 import '../neon_void_game.dart';
 import '../palette.dart';
+import '../weapon.dart';
 
 enum PowerUpType {
   weapon(Palette.powerUpWeapon, 'W'),
@@ -26,17 +27,31 @@ class PowerUp extends PositionComponent with HasGameReference<NeonVoidGame> {
   final PowerUpType type;
   double _age = 0;
 
-  static const dropChance = 0.12;
   static const _fallSpeed = 80.0;
   static final _random = Random();
 
   /// Rolls the drop chance; call on every enemy kill.
+  ///
+  /// Drops get rarer both as the campaign advances and as the player's
+  /// upgrades stack up, so the power curve stays under control while early
+  /// levels shower the player with toys.
   static void maybeDrop(NeonVoidGame game, Vector2 position) {
-    if (_random.nextDouble() < dropChance) {
-      final type =
-          PowerUpType.values[_random.nextInt(PowerUpType.values.length)];
-      game.world.add(PowerUp(type: type, position: position));
-    }
+    final level = game.level.value;
+    final weaponLevel = game.weaponLevel.value;
+    final shieldLevel = game.player?.shieldLevel ?? 0;
+
+    final base = 0.24 - 0.013 * (level - 1);
+    final upgradePenalty =
+        1.0 - (weaponLevel - 1) / 22.0 - shieldLevel / 18.0;
+    final chance = (base * upgradePenalty).clamp(0.05, 0.24);
+    if (_random.nextDouble() >= chance) return;
+
+    // Weight the type toward whichever upgrade track is further from its cap.
+    final weaponWeight = (maxWeaponLevel - weaponLevel) + 2.0;
+    final shieldWeight = (maxShieldLevel - shieldLevel) + 2.0;
+    final roll = _random.nextDouble() * (weaponWeight + shieldWeight);
+    final type = roll < weaponWeight ? PowerUpType.weapon : PowerUpType.shield;
+    game.spawn(PowerUp(type: type, position: position));
   }
 
   @override

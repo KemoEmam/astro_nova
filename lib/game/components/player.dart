@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/collisions.dart';
@@ -6,8 +7,12 @@ import 'package:flutter/services.dart';
 
 import '../neon_void_game.dart';
 import '../palette.dart';
+import '../weapon.dart';
+import 'boss.dart';
 import 'bullet.dart';
+import 'effects.dart';
 import 'enemy.dart';
+import 'enemy_bullet.dart';
 import 'explosion.dart';
 import 'power_up.dart';
 
@@ -24,20 +29,25 @@ class Player extends PositionComponent
             NeonVoidGame.worldWidth / 2,
             NeonVoidGame.worldHeight - 90,
           ),
+          priority: 20,
         );
 
   static const _moveSpeed = 320.0;
-  static const _fireInterval = 0.16;
   static const _invulnerableDuration = 1.6;
-  static const maxWeaponLevel = 3;
+  static const _shieldRegenInterval = 10.0;
 
   final Vector2 _keyboardDirection = Vector2.zero();
   double _fireCooldown = 0;
   double _invulnerable = 0;
-  int weaponLevel = 1;
-  bool hasShield = false;
+  double _regenTimer = 0;
+
+  /// Shield tier collected so far (0-5); determines charge capacity + perks.
+  int shieldLevel = 0;
+  int _shieldCharges = 0;
 
   bool get isInvulnerable => _invulnerable > 0;
+
+  WeaponSpec get _weapon => weaponLevels[game.weaponLevel.value - 1];
 
   @override
   void onLoad() {
@@ -57,10 +67,19 @@ class Player extends PositionComponent
 
     _invulnerable = _invulnerable > 0 ? _invulnerable - dt : 0;
 
+    // ETERNAL AEGIS perk: charges slowly regenerate.
+    if (shieldRegenerates(shieldLevel) && _shieldCharges < shieldLevel) {
+      _regenTimer += dt;
+      if (_regenTimer >= _shieldRegenInterval) {
+        _regenTimer = 0;
+        _setShieldCharges(_shieldCharges + 1);
+      }
+    }
+
     _fireCooldown -= dt;
     if (_fireCooldown <= 0) {
       _fire();
-      _fireCooldown = _fireInterval;
+      _fireCooldown = _weapon.fireInterval;
     }
   }
 
@@ -71,16 +90,15 @@ class Player extends PositionComponent
 
   void _fire() {
     final nose = position - Vector2(0, height / 2);
-    switch (weaponLevel) {
-      case 1:
-        game.world.add(Bullet(position: nose));
-      case 2:
-        game.world.add(Bullet(position: nose + Vector2(-9, 4)));
-        game.world.add(Bullet(position: nose + Vector2(9, 4)));
-      default:
-        game.world.add(Bullet(position: nose));
-        game.world.add(Bullet(position: nose + Vector2(-12, 8)));
-        game.world.add(Bullet(position: nose + Vector2(12, 8)));
+    for (final shot in _weapon.shots) {
+      final rad = shot.angleDeg * pi / 180;
+      game.spawn(Bullet(
+        position: nose + Vector2(shot.dx, shot.dy),
+        direction: Vector2(sin(rad), -cos(rad)),
+        damage: shot.damage,
+        pierce: shot.pierce,
+        homing: shot.homing,
+      ));
     }
   }
 
@@ -113,6 +131,11 @@ class Player extends PositionComponent
     if (other is Enemy) {
       other.die();
       _takeDamage();
+    } else if (other is Boss) {
+      _takeDamage();
+    } else if (other is EnemyBullet) {
+      other.removeFromParent();
+      _takeDamage();
     } else if (other is PowerUp) {
       _collect(other);
     }
@@ -121,27 +144,66 @@ class Player extends PositionComponent
   void _collect(PowerUp powerUp) {
     switch (powerUp.type) {
       case PowerUpType.weapon:
-        if (weaponLevel < maxWeaponLevel) {
-          weaponLevel++;
+        if (game.weaponLevel.value < maxWeaponLevel) {
+          game.weaponLevel.value++;
+          _announce(_weapon.name, Palette.powerUpWeapon);
         } else {
-          game.addScore(50); // already maxed — consolation points
+          game.addScore(100);
+          _announce('+100', Palette.powerUpWeapon);
         }
       case PowerUpType.shield:
-        hasShield = true;
+        if (shieldLevel < maxShieldLevel) {
+          shieldLevel++;
+          _setShieldCharges(shieldLevel);
+          _announce(shieldNames[shieldLevel - 1], Palette.powerUpShield);
+        } else {
+          _setShieldCharges(shieldLevel); // refill
+          game.addScore(100);
+          _announce('SHIELD RESTORED', Palette.powerUpShield);
+        }
     }
     powerUp.removeFromParent();
   }
 
+  void _announce(String text, Color color) {
+    game.spawn(FloatingText(
+      text,
+      position: position - Vector2(0, 40),
+      color: color,
+    ));
+  }
+
+  void _setShieldCharges(int value) {
+    _shieldCharges = value.clamp(0, shieldLevel);
+    game.shieldCharges.value = _shieldCharges;
+  }
+
   void _takeDamage() {
     if (isInvulnerable) return;
-    if (hasShield) {
-      hasShield = false;
-      _invulnerable = 0.5;
+    if (_shieldCharges > 0) {
+      _setShieldCharges(_shieldCharges - 1);
+      _invulnerable = 0.6;
+      // NOVA GUARD perk: absorbing a hit detonates a shockwave.
+      if (shieldHasShockwave(shieldLevel)) {
+        final radius = shieldShockwaveRadius(shieldLevel);
+        game.spawn(ShockwaveRing(
+          position: position.clone(),
+          maxRadius: radius,
+          color: Palette.shield,
+        ));
+        for (final enemy
+            in game.runRoot.children.query<Enemy>().toList()) {
+          if (enemy.position.distanceTo(position) <= radius) {
+            enemy.die();
+          }
+        }
+      }
       return;
     }
-    weaponLevel = 1;
+    game.weaponLevel.value = max(1, game.weaponLevel.value - 2);
     _invulnerable = _invulnerableDuration;
-    game.world.add(explosion(
+    game.shake(8);
+    game.spawn(explosion(
       position: position.clone(),
       color: Palette.player,
       count: 30,
@@ -183,16 +245,25 @@ class Player extends PositionComponent
       Paint()..color = Palette.playerCore,
     );
 
-    if (hasShield) {
-      canvas.drawCircle(
-        Offset(w / 2, h / 2),
-        w * 0.85,
-        Paint()
-          ..color = Palette.shield.withValues(alpha: 0.7)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
-      );
+    // Shield ring: one arc segment per remaining charge.
+    if (_shieldCharges > 0) {
+      final center = Offset(w / 2, h / 2);
+      final radius = w * 0.85;
+      const gap = 0.18;
+      final sweep = (2 * pi / max(1, shieldLevel)) - gap;
+      for (var i = 0; i < _shieldCharges; i++) {
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: radius),
+          -pi / 2 + i * (sweep + gap),
+          sweep,
+          false,
+          Paint()
+            ..color = Palette.shield.withValues(alpha: 0.8)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.5
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+        );
+      }
     }
   }
 }

@@ -6,6 +6,7 @@ import 'package:flame/components.dart';
 
 import '../neon_void_game.dart';
 import '../palette.dart';
+import 'bullet.dart';
 import 'explosion.dart';
 import 'power_up.dart';
 
@@ -34,9 +35,16 @@ enum EnemyType {
   final double radius;
 }
 
-class Enemy extends PositionComponent with HasGameReference<NeonVoidGame> {
-  Enemy({required this.type, required Vector2 position})
-      : _hp = type.hp,
+class Enemy extends PositionComponent
+    with HasGameReference<NeonVoidGame>
+    implements Damageable {
+  Enemy({
+    required this.type,
+    required Vector2 position,
+    int bonusHp = 0,
+    this.speedMultiplier = 1.0,
+  })  : maxHp = type.hp + bonusHp,
+        _hp = type.hp + bonusHp,
         super(
           position: position,
           size: Vector2.all(type.radius * 2),
@@ -44,6 +52,8 @@ class Enemy extends PositionComponent with HasGameReference<NeonVoidGame> {
         );
 
   final EnemyType type;
+  final int maxHp;
+  final double speedMultiplier;
   int _hp;
   double _age = 0;
   double _hitFlash = 0;
@@ -58,7 +68,7 @@ class Enemy extends PositionComponent with HasGameReference<NeonVoidGame> {
   void update(double dt) {
     _age += dt;
     _hitFlash = max(0, _hitFlash - dt * 6);
-    position.y += type.speed * dt;
+    position.y += type.speed * speedMultiplier * dt;
     if (type == EnemyType.weaver) {
       position.x += sin(_age * 4 + _waveOffset) * 90 * dt;
       position.x = position.x.clamp(type.radius, NeonVoidGame.worldWidth - type.radius);
@@ -68,6 +78,7 @@ class Enemy extends PositionComponent with HasGameReference<NeonVoidGame> {
     }
   }
 
+  @override
   void takeHit(int damage) {
     _hp -= damage;
     _hitFlash = 1;
@@ -76,11 +87,11 @@ class Enemy extends PositionComponent with HasGameReference<NeonVoidGame> {
     }
   }
 
-  /// Kill from gameplay (bullet or ramming the player): score, explosion,
-  /// possible power-up drop.
+  /// Kill from gameplay (bullet, ramming the player, or a shield shockwave):
+  /// score, explosion, possible power-up drop.
   void die() {
     game.addScore(type.score);
-    game.world.add(explosion(
+    game.spawn(explosion(
       position: position.clone(),
       color: type.color,
       count: type == EnemyType.tank ? 40 : 22,
@@ -113,7 +124,7 @@ class Enemy extends PositionComponent with HasGameReference<NeonVoidGame> {
     if (type == EnemyType.tank) {
       canvas.drawCircle(
         center,
-        r * 0.5 * (_hp / type.hp),
+        r * 0.5 * (_hp / maxHp),
         Paint()..color = color.withValues(alpha: 0.6),
       );
     }

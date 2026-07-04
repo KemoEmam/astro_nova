@@ -28,6 +28,8 @@ class NeonVoidApp extends StatelessWidget {
             NeonVoidGame.overlayPause: (_, game) => PauseOverlay(game: game),
             NeonVoidGame.overlayGameOver: (_, game) =>
                 GameOverOverlay(game: game),
+            NeonVoidGame.overlayVictory: (_, game) =>
+                VictoryOverlay(game: game),
           },
         ),
       ),

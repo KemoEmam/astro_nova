@@ -1,9 +1,13 @@
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:neon_void/game/components/boss.dart';
 import 'package:neon_void/game/components/bullet.dart';
 import 'package:neon_void/game/components/enemy.dart';
+import 'package:neon_void/game/level_manager.dart';
+import 'package:neon_void/game/level_theme.dart';
 import 'package:neon_void/game/neon_void_game.dart';
+import 'package:neon_void/game/weapon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<NeonVoidGame> pumpGame(WidgetTester tester) async {
@@ -17,6 +21,7 @@ Future<NeonVoidGame> pumpGame(WidgetTester tester) async {
           NeonVoidGame.overlayHud,
           NeonVoidGame.overlayPause,
           NeonVoidGame.overlayGameOver,
+          NeonVoidGame.overlayVictory,
         ])
           name: (_, NeonVoidGame _) => const SizedBox(),
       },
@@ -30,6 +35,13 @@ Future<NeonVoidGame> pumpGame(WidgetTester tester) async {
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
+  test('campaign data is complete: 10 themes, 10 bosses, 10 weapon tiers', () {
+    expect(levelThemes.length, LevelManager.maxLevel);
+    expect(bossSpecs.length, LevelManager.maxLevel);
+    expect(weaponLevels.length, maxWeaponLevel);
+    expect(shieldNames.length, maxShieldLevel);
+  });
+
   testWidgets('loads into menu state with the menu overlay shown',
       (tester) async {
     final game = await pumpGame(tester);
@@ -37,7 +49,7 @@ void main() {
     expect(game.overlays.isActive(NeonVoidGame.overlayMenu), isTrue);
   });
 
-  testWidgets('startGame spawns the player and switches to the HUD',
+  testWidgets('startGame resets the run and switches to the HUD',
       (tester) async {
     final game = await pumpGame(tester);
     game.startGame();
@@ -49,6 +61,8 @@ void main() {
     expect(game.overlays.isActive(NeonVoidGame.overlayMenu), isFalse);
     expect(game.lives.value, NeonVoidGame.startingLives);
     expect(game.score.value, 0);
+    expect(game.level.value, 1);
+    expect(game.weaponLevel.value, 1);
   });
 
   testWidgets('killing an enemy awards its score value', (tester) async {
@@ -57,7 +71,7 @@ void main() {
     game.update(0);
 
     final enemy = Enemy(type: EnemyType.drifter, position: Vector2(200, 100));
-    await game.world.add(enemy);
+    await game.runRoot.add(enemy);
     game.update(0);
 
     enemy.takeHit(1);
@@ -73,7 +87,7 @@ void main() {
     game.update(0);
 
     final tank = Enemy(type: EnemyType.tank, position: Vector2(200, 100));
-    await game.world.add(tank);
+    await game.runRoot.add(tank);
     game.update(0);
 
     for (var i = 0; i < EnemyType.tank.hp - 1; i++) {
@@ -93,12 +107,43 @@ void main() {
     game.update(0);
 
     final bullet = Bullet(position: Vector2(200, 10));
-    await game.world.add(bullet);
+    await game.runRoot.add(bullet);
     game.update(0);
 
     game.update(1.0); // more than enough time to fly off-screen
     game.update(0);
     expect(bullet.isMounted, isFalse);
+  });
+
+  testWidgets('boss defeat advances the campaign to the next level',
+      (tester) async {
+    final game = await pumpGame(tester);
+    game.startGame();
+    game.update(0);
+
+    // Fast-forward: intro (1.2s) + waves for level 1.
+    game.update(1.3);
+    game.update(20.0);
+    game.update(0);
+    expect(game.levelManager, isNotNull);
+
+    // Boss intro (2s) then the boss spawns.
+    game.update(2.1);
+    game.update(0);
+    final boss = game.runRoot.children.query<Boss>().toList();
+    expect(boss, hasLength(1));
+
+    boss.first.takeHit(0); // still entering — no damage registered
+    // Let it finish the fly-in, then burst it down.
+    game.update(3.0);
+    boss.first.takeHit(bossSpecs[0].hp);
+    game.update(0);
+
+    // Cleared phase → next level after the banner.
+    game.update(2.5);
+    game.update(0);
+    expect(game.level.value, 2);
+    expect(game.state, GameState.playing);
   });
 
   testWidgets('losing all lives ends the game and shows game over',
@@ -113,5 +158,16 @@ void main() {
     expect(game.state, GameState.gameOver);
     expect(game.overlays.isActive(NeonVoidGame.overlayGameOver), isTrue);
     expect(game.overlays.isActive(NeonVoidGame.overlayHud), isFalse);
+  });
+
+  testWidgets('victory flow triggers after clearing level 10', (tester) async {
+    final game = await pumpGame(tester);
+    game.startGame();
+    game.update(0);
+    game.level.value = LevelManager.maxLevel;
+    game.victory();
+
+    expect(game.state, GameState.victory);
+    expect(game.overlays.isActive(NeonVoidGame.overlayVictory), isTrue);
   });
 }
