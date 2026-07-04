@@ -8,8 +8,9 @@ import 'enemy.dart';
 /// Level-driven spawner. The [LevelManager] toggles [enabled] (off during
 /// boss fights) and calls [configureForLevel] on every level change.
 ///
-/// Difficulty curve: gentle through level 7, a modest bump for 8-10 so the
-/// finale feels earned but stays beatable.
+/// Difficulty ramps smoothly across the whole campaign: spawn interval,
+/// enemy speed, spawn mix, and bonus HP all scale with the level while
+/// staying beatable — the player's weapon curve grows faster.
 class EnemySpawner extends Component with HasGameReference<NeonVoidGame> {
   final _random = Random();
   double _sinceLastSpawn = 0;
@@ -22,17 +23,11 @@ class EnemySpawner extends Component with HasGameReference<NeonVoidGame> {
   double _speedMultiplier = 1.0;
 
   void configureForLevel(int level) {
-    if (level <= 7) {
-      _interval = 1.25 - 0.06 * level;
-      _bonusHp = 0;
-      _speedMultiplier = 1.0 + 0.02 * (level - 1);
-    } else {
-      _interval = 0.82 - 0.08 * (level - 7);
-      _bonusHp = 1;
-      _speedMultiplier = 1.15 + 0.05 * (level - 8);
-    }
-    _weaverWeight = 0.10 + 0.03 * level;
-    _tankWeight = 0.04 + 0.02 * level;
+    _interval = max(0.52, 1.2 - 0.075 * (level - 1));
+    _speedMultiplier = 1.0 + 0.045 * (level - 1);
+    _bonusHp = level < 4 ? 0 : (level - 1) ~/ 3;
+    _weaverWeight = 0.10 + 0.035 * level;
+    _tankWeight = 0.04 + 0.022 * level;
   }
 
   @override

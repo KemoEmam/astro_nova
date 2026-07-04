@@ -6,6 +6,7 @@ import 'package:flame/components.dart';
 
 import '../neon_void_game.dart';
 import '../palette.dart';
+import '../weapon.dart';
 
 /// Anything a player bullet can hurt (regular enemies and bosses).
 abstract interface class Damageable {
@@ -22,30 +23,28 @@ class Bullet extends PositionComponent
     this.damage = 1,
     this.pierce = 0,
     this.homing = false,
+    this.color = Palette.bullet,
+    this.shape = BulletShape.bolt,
   }) : super(
           position: position,
           size: Vector2(3.0 + damage * 1.5, 12.0 + damage * 3),
           anchor: Anchor.center,
         ) {
     _velocity = (direction ?? Vector2(0, -1)).normalized() * _speed;
+    if (shape == BulletShape.beam) size.y += 10;
+    if (shape == BulletShape.orb) size.x += 3;
   }
 
   final int damage;
   int pierce;
   final bool homing;
+  final Color color;
+  final BulletShape shape;
   late Vector2 _velocity;
 
   static const _speed = 620.0;
   static const _homingTurnRate = 5.5; // rad/s
-
-  static final _glowPaint = Paint()
-    ..color = Palette.bullet.withValues(alpha: 0.5)
-    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-  static final _corePaint = Paint()..color = Palette.bullet;
-  static final _homingGlow = Paint()
-    ..color = const Color(0xFFFF6E40).withValues(alpha: 0.6)
-    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
-  static final _homingCore = Paint()..color = const Color(0xFFFFAB91);
+  static const _homingColor = Color(0xFFFFAB91);
 
   @override
   void onLoad() {
@@ -95,9 +94,45 @@ class Bullet extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    final rect = RRect.fromRectAndRadius(size.toRect(), const Radius.circular(2));
-    canvas.drawRRect(rect, homing ? _homingGlow : _glowPaint);
-    canvas.drawRRect(rect.deflate(1), homing ? _homingCore : _corePaint);
+    final drawColor = homing ? _homingColor : color;
+    final glow = Paint()
+      ..color = drawColor.withValues(alpha: 0.55)
+      ..maskFilter = MaskFilter.blur(
+          BlurStyle.normal, shape == BulletShape.beam ? 7 : 4);
+    final core = Paint()..color = drawColor;
+
+    switch (homing ? BulletShape.diamond : shape) {
+      case BulletShape.bolt:
+        final rect = RRect.fromRectAndRadius(size.toRect(), const Radius.circular(2));
+        canvas.drawRRect(rect, glow);
+        canvas.drawRRect(rect.deflate(1), core);
+      case BulletShape.diamond:
+        final path = Path()
+          ..moveTo(width / 2, 0)
+          ..lineTo(width, height / 2)
+          ..lineTo(width / 2, height)
+          ..lineTo(0, height / 2)
+          ..close();
+        canvas.drawPath(path, glow);
+        canvas.drawPath(path, core);
+      case BulletShape.orb:
+        final center = Offset(width / 2, height / 2);
+        canvas.drawCircle(center, width * 0.9, glow);
+        canvas.drawCircle(center, width * 0.55, core);
+        canvas.drawCircle(center, width * 0.25,
+            Paint()..color = const Color(0xFFFFFFFF));
+      case BulletShape.beam:
+        final rect = RRect.fromRectAndRadius(size.toRect(), const Radius.circular(3));
+        canvas.drawRRect(rect.inflate(2), glow);
+        canvas.drawRRect(rect, core);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(width * 0.3, 2, width * 0.4, height - 4),
+            const Radius.circular(2),
+          ),
+          Paint()..color = const Color(0xFFFFFFFF),
+        );
+    }
   }
 
   @override

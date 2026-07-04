@@ -42,19 +42,20 @@ class BossSpec {
   final double bulletSpeed;
 }
 
-/// One hand-tuned boss per level. HP assumes the player has been picking up
-/// weapon drops; attack pressure stays gentle until the last three.
+/// One hand-tuned boss per level. HP and attack pressure climb steadily
+/// through the whole campaign — the player's 30-tier weapon curve grows
+/// faster, so fights stay beatable while feeling meaner each level.
 const bossSpecs = <BossSpec>[
-  BossSpec(name: 'SENTINEL', color: Color(0xFFFF4081), hp: 55, radius: 30, points: 3, movement: BossMovement.strafe, attacks: [BossAttack.aimed], attackInterval: 1.9, bulletSpeed: 140),
-  BossSpec(name: 'TWIN FANG', color: Color(0xFFFF6E40), hp: 80, radius: 30, points: 4, star: true, movement: BossMovement.strafe, attacks: [BossAttack.spread], attackInterval: 1.9, bulletSpeed: 145),
-  BossSpec(name: 'HEXEN', color: Color(0xFF69F0AE), hp: 105, radius: 32, points: 6, movement: BossMovement.figure8, attacks: [BossAttack.radial], attackInterval: 2.0, bulletSpeed: 130),
-  BossSpec(name: 'WIDOW', color: Color(0xFFFFAB40), hp: 130, radius: 30, points: 5, star: true, movement: BossMovement.strafe, attacks: [BossAttack.aimed, BossAttack.spread], attackInterval: 1.7, bulletSpeed: 155),
-  BossSpec(name: 'BULWARK', color: Color(0xFF448AFF), hp: 165, radius: 40, points: 8, movement: BossMovement.strafe, attacks: [BossAttack.radial, BossAttack.summon], attackInterval: 1.8, bulletSpeed: 140),
-  BossSpec(name: 'PHANTOM', color: Color(0xFFE040FB), hp: 185, radius: 28, points: 6, star: true, movement: BossMovement.teleport, attacks: [BossAttack.aimed, BossAttack.spread], attackInterval: 1.6, bulletSpeed: 160),
-  BossSpec(name: 'VORTEX', color: Color(0xFF64FFDA), hp: 210, radius: 32, points: 7, star: true, movement: BossMovement.figure8, attacks: [BossAttack.spiral], attackInterval: 0.55, bulletSpeed: 150),
-  BossSpec(name: 'REAPER', color: Color(0xFFFF5252), hp: 240, radius: 30, points: 5, star: true, movement: BossMovement.dive, attacks: [BossAttack.spread, BossAttack.aimed], attackInterval: 1.35, bulletSpeed: 175),
-  BossSpec(name: 'HYDRA', color: Color(0xFFFFD740), hp: 275, radius: 36, points: 9, movement: BossMovement.figure8, attacks: [BossAttack.radial, BossAttack.summon, BossAttack.spread], attackInterval: 1.3, bulletSpeed: 180),
-  BossSpec(name: 'VOID PRIME', color: Color(0xFFEEFF41), hp: 330, radius: 42, points: 8, star: true, movement: BossMovement.teleport, attacks: [BossAttack.spiral, BossAttack.radial, BossAttack.aimed], attackInterval: 1.1, bulletSpeed: 190),
+  BossSpec(name: 'SENTINEL', color: Color(0xFFFF4081), hp: 70, radius: 30, points: 3, movement: BossMovement.strafe, attacks: [BossAttack.aimed], attackInterval: 1.7, bulletSpeed: 150),
+  BossSpec(name: 'TWIN FANG', color: Color(0xFFFF6E40), hp: 105, radius: 30, points: 4, star: true, movement: BossMovement.strafe, attacks: [BossAttack.spread, BossAttack.aimed], attackInterval: 1.65, bulletSpeed: 160),
+  BossSpec(name: 'HEXEN', color: Color(0xFF69F0AE), hp: 145, radius: 32, points: 6, movement: BossMovement.figure8, attacks: [BossAttack.radial, BossAttack.aimed], attackInterval: 1.7, bulletSpeed: 150),
+  BossSpec(name: 'WIDOW', color: Color(0xFFFFAB40), hp: 190, radius: 30, points: 5, star: true, movement: BossMovement.strafe, attacks: [BossAttack.aimed, BossAttack.spread], attackInterval: 1.5, bulletSpeed: 170),
+  BossSpec(name: 'BULWARK', color: Color(0xFF448AFF), hp: 240, radius: 40, points: 8, movement: BossMovement.strafe, attacks: [BossAttack.radial, BossAttack.summon, BossAttack.spread], attackInterval: 1.5, bulletSpeed: 160),
+  BossSpec(name: 'PHANTOM', color: Color(0xFFE040FB), hp: 290, radius: 28, points: 6, star: true, movement: BossMovement.teleport, attacks: [BossAttack.aimed, BossAttack.spread], attackInterval: 1.35, bulletSpeed: 180),
+  BossSpec(name: 'VORTEX', color: Color(0xFF64FFDA), hp: 345, radius: 32, points: 7, star: true, movement: BossMovement.figure8, attacks: [BossAttack.spiral], attackInterval: 0.48, bulletSpeed: 170),
+  BossSpec(name: 'REAPER', color: Color(0xFFFF5252), hp: 400, radius: 30, points: 5, star: true, movement: BossMovement.dive, attacks: [BossAttack.spread, BossAttack.aimed, BossAttack.radial], attackInterval: 1.2, bulletSpeed: 195),
+  BossSpec(name: 'HYDRA', color: Color(0xFFFFD740), hp: 460, radius: 36, points: 9, movement: BossMovement.figure8, attacks: [BossAttack.radial, BossAttack.summon, BossAttack.spread, BossAttack.aimed], attackInterval: 1.1, bulletSpeed: 205),
+  BossSpec(name: 'VOID PRIME', color: Color(0xFFEEFF41), hp: 540, radius: 42, points: 8, star: true, movement: BossMovement.teleport, attacks: [BossAttack.spiral, BossAttack.radial, BossAttack.aimed], attackInterval: 0.95, bulletSpeed: 220),
 ];
 
 class Boss extends PositionComponent

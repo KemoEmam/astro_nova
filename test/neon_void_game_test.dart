@@ -35,7 +35,7 @@ Future<NeonVoidGame> pumpGame(WidgetTester tester) async {
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('campaign data is complete: 10 themes, 10 bosses, 10 weapon tiers', () {
+  test('campaign data is complete: 10 themes, 10 bosses, 30 weapon tiers', () {
     expect(levelThemes.length, LevelManager.maxLevel);
     expect(bossSpecs.length, LevelManager.maxLevel);
     expect(weaponLevels.length, maxWeaponLevel);

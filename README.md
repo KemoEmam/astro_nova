@@ -9,14 +9,14 @@ A neon-styled vertical space shooter built with **Flutter** and the **[Flame](ht
 
 ## Gameplay
 
-A **10-level campaign designed to be finished in one sitting** (~10 minutes): short wave phases with a visible progress bar, a unique cinematic mini-boss at the end of every level, and a new visual theme per level. Easy through level 7, a fair bump for the last three.
+A **10-level campaign designed to be finished in one sitting** (~10 minutes): short wave phases with a visible progress bar, a unique cinematic mini-boss at the end of every level, and a new visual theme per level. Difficulty ramps smoothly from level 1 to 10 — your weapon curve grows faster, so it stays beatable.
 
 - **Move:** drag anywhere (mobile) or WASD / arrow keys (desktop & web)
 - **Fire:** automatic · **Pause:** `Esc` / `P` or the HUD button
 
 **Enemies** — Drifter (pink triangle, falls straight), Weaver (orange diamond, sine-strafe), Tank (purple hexagon, bullet sponge with an HP ring).
 
-**10 weapon tiers** — every pickup is a new loadout, not a stat bump: Pulse Shot → Twin Cannon → Triple Spread → Rapid Spread → Quad Barrage → Piercing Lance → Penta Storm → Homing Fury → Overdrive → **Void Laser**. Getting hit knocks you back two tiers.
+**30 weapon tiers** — generated from a progression formula so every pickup changes something real: straight barrels, widening spread pairs, homing missiles, piercing, damage, and fire rate each unlock on their own schedule, from Pulse Shot all the way to the **Void Laser**. Bullet color and shape (bolt → diamond → orb → beam) evolve through the tiers. Getting hit knocks you back three tiers.
 
 **5 shield tiers** — Aegis I/II (charges), Nova Guard / Nova Guard+ (absorbing a hit detonates a shockwave), Eternal Aegis (charges regenerate).
 
@@ -35,7 +35,7 @@ lib/
 │   ├── neon_void_game.dart       # FlameGame: camera, run lifecycle, notifiers
 │   ├── level_manager.dart        # campaign state machine (waves → boss → clear)
 │   ├── level_theme.dart          # 10 per-level visual themes
-│   ├── weapon.dart               # 10 weapon tiers + 5 shield tiers as data
+│   ├── weapon.dart               # 30 generated weapon tiers + 5 shield tiers
 │   ├── palette.dart              # base art-direction colors
 │   └── components/
 │       ├── player.dart           # input, weapon table firing, shield perks

@@ -40,14 +40,15 @@ class PowerUp extends PositionComponent with HasGameReference<NeonVoidGame> {
     final weaponLevel = game.weaponLevel.value;
     final shieldLevel = game.player?.shieldLevel ?? 0;
 
-    final base = 0.24 - 0.013 * (level - 1);
+    final base = 0.21 - 0.011 * (level - 1);
     final upgradePenalty =
-        1.0 - (weaponLevel - 1) / 22.0 - shieldLevel / 18.0;
-    final chance = (base * upgradePenalty).clamp(0.05, 0.24);
+        1.0 - (weaponLevel - 1) / 70.0 - shieldLevel / 20.0;
+    final chance = (base * upgradePenalty).clamp(0.04, 0.21);
     if (_random.nextDouble() >= chance) return;
 
-    // Weight the type toward whichever upgrade track is further from its cap.
-    final weaponWeight = (maxWeaponLevel - weaponLevel) + 2.0;
+    // Weight the type toward whichever upgrade track is further from its cap
+    // (weapon track scaled down so its 30 tiers don't drown out the shield).
+    final weaponWeight = (maxWeaponLevel - weaponLevel) / 4.0 + 2.0;
     final shieldWeight = (maxShieldLevel - shieldLevel) + 2.0;
     final roll = _random.nextDouble() * (weaponWeight + shieldWeight);
     final type = roll < weaponWeight ? PowerUpType.weapon : PowerUpType.shield;

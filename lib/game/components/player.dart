@@ -90,7 +90,8 @@ class Player extends PositionComponent
 
   void _fire() {
     final nose = position - Vector2(0, height / 2);
-    for (final shot in _weapon.shots) {
+    final weapon = _weapon;
+    for (final shot in weapon.shots) {
       final rad = shot.angleDeg * pi / 180;
       game.spawn(Bullet(
         position: nose + Vector2(shot.dx, shot.dy),
@@ -98,6 +99,8 @@ class Player extends PositionComponent
         damage: shot.damage,
         pierce: shot.pierce,
         homing: shot.homing,
+        color: weapon.color,
+        shape: weapon.shape,
       ));
     }
   }
@@ -200,7 +203,7 @@ class Player extends PositionComponent
       }
       return;
     }
-    game.weaponLevel.value = max(1, game.weaponLevel.value - 2);
+    game.weaponLevel.value = max(1, game.weaponLevel.value - 3);
     _invulnerable = _invulnerableDuration;
     game.shake(8);
     game.spawn(explosion(
