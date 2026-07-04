@@ -77,13 +77,20 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
   }
 
   /// Boss lineup per level: level 5 is a twin fight, level 10 a triple
-  /// finale. Multi-boss fights pull in the previous levels' bosses at
-  /// reduced HP, each patrolling its own lane.
+  /// finale — always identical copies of that level's boss, each patrolling
+  /// its own lane at reduced HP.
   List<BossSpec> get _lineup {
     final level = game.level.value;
-    if (level == 5) return [bossSpecs[3], bossSpecs[4]];
-    if (level == 10) return [bossSpecs[7], bossSpecs[9], bossSpecs[8]];
-    return [bossSpecs[level - 1]];
+    final spec = bossSpecs[level - 1];
+    final count = switch (level) { 5 => 2, 10 => 3, _ => 1 };
+    return List.filled(count, spec);
+  }
+
+  String get _lineupTitle {
+    final lineup = _lineup;
+    return lineup.length == 1
+        ? lineup.first.name
+        : '${lineup.first.name} x${lineup.length}';
   }
 
   void _startBossIntro() {
@@ -95,7 +102,7 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
     game.shake(5);
     game.spawn(CinematicBanner(
       title: '! WARNING !',
-      subtitle: '${lineup.map((s) => s.name).join(' + ')} APPROACHING',
+      subtitle: '$_lineupTitle APPROACHING',
       color: lineup.last.color,
       lifespan: 2.0,
       flashing: true,
@@ -130,7 +137,7 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
       ));
     }
     game.bossHealth.value = 1.0;
-    game.bossName.value = lineup.map((s) => s.name).join(' + ');
+    game.bossName.value = _lineupTitle;
   }
 
   /// Aggregate HP bar across all living bosses in the fight.

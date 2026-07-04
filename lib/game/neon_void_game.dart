@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show KeyEventResult;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'buffs.dart';
 import 'components/background.dart';
 import 'components/boss.dart';
 import 'components/bullet.dart';
@@ -50,11 +51,17 @@ class NeonVoidGame extends FlameGame
   final bossHealth = ValueNotifier<double?>(null);
   final bossName = ValueNotifier<String?>(null);
 
-  // Permanent run-buffs granted by Boss Cores (one unique relic per level).
-  double fireRateScale = 1.0;
-  int bonusDamage = 0;
-  bool magnet = false;
-  double scoreMultiplier = 1.0;
+  /// Timed run-buffs from Boss Cores; the HUD sidebar renders this list.
+  final activeBuffs = ValueNotifier<List<ActiveBuff>>([]);
+
+  double get fireRateScale =>
+      activeBuffs.value.fold(1.0, (v, b) => v * b.fireRateFactor);
+  int get bonusDamage =>
+      activeBuffs.value.fold(0, (v, b) => v + b.bonusDamage);
+  bool get magnet => activeBuffs.value.any((b) => b.magnet);
+  double get scoreMultiplier =>
+      activeBuffs.value.fold(1.0, (v, b) => v * b.scoreFactor);
+
   int maxLivesCurrent = maxLives;
 
   // Bad-luck protection: guarantees at least one weapon drop per level
@@ -118,10 +125,7 @@ class NeonVoidGame extends FlameGame
     shieldCharges.value = 0;
     bossHealth.value = null;
     bossName.value = null;
-    fireRateScale = 1.0;
-    bonusDamage = 0;
-    magnet = false;
-    scoreMultiplier = 1.0;
+    activeBuffs.value = [];
     maxLivesCurrent = maxLives;
     killsSinceWeaponDrop = 0;
     weaponDroppedThisLevel = false;
@@ -162,42 +166,24 @@ class NeonVoidGame extends FlameGame
     }
   }
 
-  /// Applies the given level's Boss Core relic and returns its name for
-  /// the pickup announcement. One unique permanent buff per level.
+  /// Applies the given level's Boss Core relic as a timed buff and returns
+  /// its name for the pickup announcement.
   String applyBossRelic(int relicLevel) {
-    switch (relicLevel) {
-      case 1:
-        fireRateScale *= 0.9;
-        return 'OVERCLOCK CORE';
-      case 2:
-        magnet = true;
-        return 'MAGNET CORE';
-      case 3:
-        maxLivesCurrent++;
-        healLife();
-        return 'HULL CORE';
-      case 4:
-        bonusDamage++;
-        return 'AMP CORE';
-      case 5:
-        scoreMultiplier += 0.5;
-        return 'GREED CORE';
-      case 6:
-        fireRateScale *= 0.9;
-        return 'OVERCLOCK CORE II';
-      case 7:
-        player?.grantShieldTier();
-        return 'GUARD CORE';
-      case 8:
-        bonusDamage++;
-        return 'AMP CORE II';
-      case 9:
-        maxLivesCurrent++;
-        healLife();
-        return 'HULL CORE II';
-      default:
-        addScore(2000);
-        return 'VOID HEART';
+    final buff = bossRelicFor(relicLevel);
+    activeBuffs.value = [...activeBuffs.value, buff];
+    return buff.name;
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    // Tick down active buffs; a fresh list assignment notifies the HUD.
+    if (state == GameState.playing && activeBuffs.value.isNotEmpty) {
+      for (final buff in activeBuffs.value) {
+        buff.remaining -= dt;
+      }
+      activeBuffs.value =
+          activeBuffs.value.where((b) => b.remaining > 0).toList();
     }
   }
 

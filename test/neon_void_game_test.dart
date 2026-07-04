@@ -174,19 +174,25 @@ void main() {
     expect(game.weaponDroppedThisLevel, isTrue);
   });
 
-  testWidgets('boss relics apply permanent run buffs', (tester) async {
+  testWidgets('boss relics apply timed run buffs that expire', (tester) async {
     final game = await pumpGame(tester);
     game.startGame();
     game.update(0);
 
-    expect(game.applyBossRelic(1), 'OVERCLOCK CORE');
-    expect(game.fireRateScale, closeTo(0.9, 0.001));
+    expect(game.applyBossRelic(1), 'OVERCLOCK');
+    expect(game.fireRateScale, closeTo(0.75, 0.001));
+    expect(game.applyBossRelic(3), 'AMP CORE');
+    expect(game.bonusDamage, 1);
     expect(game.applyBossRelic(2), 'MAGNET CORE');
     expect(game.magnet, isTrue);
-    expect(game.applyBossRelic(3), 'HULL CORE');
-    expect(game.maxLivesCurrent, NeonVoidGame.maxLives + 1);
-    expect(game.applyBossRelic(4), 'AMP CORE');
-    expect(game.bonusDamage, 1);
+    expect(game.activeBuffs.value, hasLength(3));
+
+    // All buffs expire after their timers run out.
+    game.update(50);
+    expect(game.activeBuffs.value, isEmpty);
+    expect(game.fireRateScale, 1.0);
+    expect(game.bonusDamage, 0);
+    expect(game.magnet, isFalse);
   });
 
   testWidgets('losing all lives ends the game and shows game over',

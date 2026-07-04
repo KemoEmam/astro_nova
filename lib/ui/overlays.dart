@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../game/buffs.dart';
+import '../game/components/boss.dart';
 import '../game/level_manager.dart';
 import '../game/neon_void_game.dart';
 import '../game/palette.dart' as game_palette;
@@ -86,7 +88,6 @@ class HudOverlay extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -121,6 +122,7 @@ class HudOverlay extends StatelessWidget {
             _LevelBar(game: game),
             const SizedBox(height: 6),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ValueListenableBuilder<int>(
                   valueListenable: game.weaponLevel,
@@ -134,8 +136,12 @@ class HudOverlay extends StatelessWidget {
                       ? _chip('S$s', game_palette.Palette.powerUpShield)
                       : const SizedBox.shrink(),
                 ),
+                const Spacer(),
+                _BuffSidebar(game: game),
               ],
             ),
+            const Spacer(),
+            _CampaignMap(game: game),
           ],
         ),
       ),
@@ -152,6 +158,162 @@ class HudOverlay extends StatelessWidget {
       child: Text(label,
           style: TextStyle(
               color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+    );
+  }
+}
+
+/// Right-side stack of active Boss Core buffs: name + countdown bar that
+/// fades out over the final two seconds.
+class _BuffSidebar extends StatelessWidget {
+  const _BuffSidebar({required this.game});
+
+  final NeonVoidGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<List<ActiveBuff>>(
+      valueListenable: game.activeBuffs,
+      builder: (_, buffs, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (final buff in buffs)
+            Opacity(
+              opacity: (buff.remaining / 2).clamp(0.0, 1.0),
+              child: Container(
+                width: 120,
+                margin: const EdgeInsets.only(bottom: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black45,
+                  border:
+                      Border.all(color: buff.color.withValues(alpha: 0.8)),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      buff.name,
+                      style: TextStyle(
+                        color: buff.color,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        value: (buff.remaining / buff.duration)
+                            .clamp(0.0, 1.0),
+                        minHeight: 4,
+                        backgroundColor: Colors.white10,
+                        valueColor: AlwaysStoppedAnimation(buff.color),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Always-visible campaign map at the bottom of the HUD: 10 boss stations
+/// from start to finish. Cleared stations glow gold, the current one pulses,
+/// and the ship marker slides along with wave progress.
+class _CampaignMap extends StatelessWidget {
+  const _CampaignMap({required this.game});
+
+  final NeonVoidGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: game.level,
+      builder: (_, level, _) => ValueListenableBuilder<double>(
+        valueListenable: game.levelProgress,
+        builder: (_, progress, _) => SizedBox(
+          height: 44,
+          child: LayoutBuilder(
+            builder: (_, constraints) {
+              const count = LevelManager.maxLevel;
+              final width = constraints.maxWidth - 24;
+              double xFor(int i) => 12 + width * i / (count - 1);
+              final shipX =
+                  12 + width * ((level - 1) + progress.clamp(0.0, 1.0)) / count;
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Track line.
+                  Positioned(
+                    left: 12,
+                    right: 12,
+                    top: 28,
+                    child: Container(height: 2, color: Colors.white12),
+                  ),
+                  // Boss stations.
+                  for (var i = 0; i < count; i++)
+                    Positioned(
+                      left: xFor(i) - 7,
+                      top: 21,
+                      child: _station(
+                        bossSpecs[i].color,
+                        cleared: i < level - 1,
+                        current: i == level - 1,
+                      ),
+                    ),
+                  // Ship marker sliding along the track.
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 300),
+                    left: shipX - 7,
+                    top: 2,
+                    child: const Icon(Icons.navigation,
+                        color: _accent, size: 15),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _station(Color color, {required bool cleared, required bool current}) {
+    final gold = const Color(0xFFFFD740);
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      width: 14,
+      height: 14,
+      transform: current
+          ? (Matrix4.identity()..scaleByDouble(1.25, 1.25, 1.25, 1))
+          : Matrix4.identity(),
+      transformAlignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: cleared ? gold : Colors.transparent,
+        border: Border.all(
+          color: cleared ? gold : (current ? color : color.withValues(alpha: 0.5)),
+          width: current ? 2.5 : 1.5,
+        ),
+        boxShadow: cleared || current
+            ? [
+                BoxShadow(
+                  color: (cleared ? gold : color).withValues(alpha: 0.7),
+                  blurRadius: cleared ? 8 : 10,
+                ),
+              ]
+            : null,
+      ),
+      child: cleared
+          ? const Icon(Icons.star, size: 8, color: Colors.black)
+          : null,
     );
   }
 }

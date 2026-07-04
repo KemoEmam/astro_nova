@@ -102,10 +102,11 @@ class Boss extends PositionComponent
   @override
   void onLoad() {
     add(CircleHitbox(collisionType: CollisionType.passive));
-    // Extra +5% HP per campaign level on top of the per-boss spec values,
-    // shaved by a global 0.92 to keep fights snappy.
-    _maxHp = (spec.hp * hpScale * 0.92 * (1 + 0.05 * (game.level.value - 1)))
-        .round();
+    // Per-level HP growth (steeper past level 3 to keep pace with Boss Core
+    // damage buffs), shaved by a global 0.92 to keep fights snappy.
+    final level = game.level.value;
+    final growth = 1 + 0.05 * (level - 1) + (level > 3 ? 0.03 * (level - 3) : 0);
+    _maxHp = (spec.hp * hpScale * 0.92 * growth).round();
     _hp = _maxHp;
   }
 
