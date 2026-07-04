@@ -29,7 +29,7 @@ class EnemySpawner extends Component with HasGameReference<AstroNovaGame> {
     // player's Boss Core damage buffs — and a bigger second helping from
     // level 5 onward.
     _bonusHp = (level < 4 ? 0 : (level - 2) ~/ 2) +
-        (level >= 5 ? (level - 3) ~/ 2 : 0);
+        (level >= 5 ? 1 + (level - 4) ~/ 2 : 0);
   }
 
   @override
