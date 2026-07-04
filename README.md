@@ -14,7 +14,7 @@ A **10-level campaign designed to be finished in one sitting** (~10 minutes): sh
 - **Move:** drag anywhere (mobile) or WASD / arrow keys (desktop & web)
 - **Fire:** automatic · **Pause:** `Esc` / `P` or the HUD button
 
-**Enemies** — Drifter (pink triangle, falls straight), Weaver (orange diamond, sine-strafe), Tank (purple hexagon, bullet sponge with an HP ring).
+**Enemies** — Drifter (triangle, falls straight), Weaver (diamond, sine-strafe), Tank (hexagon, bullet sponge with an HP ring), plus a new unique type every 3 levels: **Darter** (level 3, accelerating arrow), **Splitter** (level 6, pentagon that splits into two drifters on death), **Phantom** (level 9, ghost orb that's only vulnerable while phased in). Enemy colors blend toward each level's theme, so every sector looks different.
 
 **30 weapon tiers** — generated from a progression formula so every pickup changes something real: straight barrels, widening spread pairs, homing missiles, piercing, damage, and fire rate each unlock on their own schedule, from Pulse Shot all the way to the **Void Laser**. Bullet color and shape (bolt → diamond → orb → beam) evolve through the tiers. Getting hit knocks you back three tiers.
 
@@ -22,7 +22,7 @@ A **10-level campaign designed to be finished in one sitting** (~10 minutes): sh
 
 **Drop economy** — power-up drop rates fall as the campaign advances *and* as your upgrades stack, so early levels shower you with toys and the endgame stays tense.
 
-**10 bosses** — one per level, each with its own shape, color, movement pattern (strafe / figure-8 / dive / teleport), and attack mix (aimed, spread, radial, spiral, minion summon): Sentinel, Twin Fang, Hexen, Widow, Bulwark, Phantom, Vortex, Reaper, Hydra, and **VOID PRIME**. Each arrives with a flashing WARNING letterbox cinematic and screen shake.
+**10 bosses** — one per level, each with its own shape, color, movement pattern (strafe / figure-8 / dive / teleport), and attack mix (aimed, spread, radial, spiral, minion summon): Sentinel, Twin Fang, Hexen, Widow, Bulwark, Phantom, Vortex, Reaper, Hydra, and **VOID PRIME**. Each arrives with a flashing WARNING letterbox cinematic and screen shake — and **level 5 is a twin-boss fight, level 10 a triple-boss finale**, with each boss patrolling its own lane and a shared HP bar.
 
 ## Architecture
 

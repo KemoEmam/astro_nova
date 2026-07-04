@@ -61,17 +61,33 @@ const bossSpecs = <BossSpec>[
 class Boss extends PositionComponent
     with HasGameReference<NeonVoidGame>
     implements Damageable {
-  Boss({required this.spec})
-      : super(
-          position: Vector2(NeonVoidGame.worldWidth / 2, -80),
+  Boss({
+    required this.spec,
+    double? centerX,
+    this.amplitude = 130,
+    this.hpScale = 1.0,
+  })  : centerX = centerX ?? NeonVoidGame.worldWidth / 2,
+        super(
+          position: Vector2(centerX ?? NeonVoidGame.worldWidth / 2, -80),
           size: Vector2.all(spec.radius * 2),
           anchor: Anchor.center,
           priority: 10,
         );
 
   final BossSpec spec;
+
+  /// Patrol center / sway amplitude — narrowed for multi-boss fights so
+  /// bosses hold their own lane instead of stacking.
+  final double centerX;
+  final double amplitude;
+
+  /// HP multiplier (<1 in multi-boss fights to keep total HP fair).
+  final double hpScale;
+
   late int _maxHp;
   late int _hp;
+
+  double get healthFraction => (_hp / _maxHp).clamp(0.0, 1.0);
   double _age = 0;
   double _hitFlash = 0;
   double _attackTimer = 0;
@@ -87,10 +103,9 @@ class Boss extends PositionComponent
   void onLoad() {
     add(CircleHitbox(collisionType: CollisionType.passive));
     // Extra +5% HP per campaign level on top of the per-boss spec values.
-    _maxHp = (spec.hp * (1 + 0.05 * (game.level.value - 1))).round();
+    _maxHp =
+        (spec.hp * hpScale * (1 + 0.05 * (game.level.value - 1))).round();
     _hp = _maxHp;
-    game.bossHealth.value = 1.0;
-    game.bossName.value = spec.name;
   }
 
   @override
@@ -119,8 +134,8 @@ class Boss extends PositionComponent
   }
 
   void _move(double dt) {
-    const cx = NeonVoidGame.worldWidth / 2;
-    const amp = 130.0;
+    final cx = centerX;
+    final amp = amplitude;
     switch (spec.movement) {
       case BossMovement.strafe:
         position.x = cx + sin(_age * 0.9) * amp;
@@ -135,7 +150,8 @@ class Boss extends PositionComponent
         _teleportTimer += dt;
         if (_teleportTimer >= 2.4) {
           _teleportTimer = 0;
-          position.x = spec.radius + _random.nextDouble() * (NeonVoidGame.worldWidth - spec.radius * 2);
+          position.x = (cx + (_random.nextDouble() * 2 - 1) * amp)
+              .clamp(spec.radius, NeonVoidGame.worldWidth - spec.radius);
           position.y = _baseY + _random.nextDouble() * 60;
           game.shake(3);
         }
@@ -188,7 +204,7 @@ class Boss extends PositionComponent
     if (_entering) return; // invincible during the fly-in
     _hp -= damage;
     _hitFlash = 1;
-    game.bossHealth.value = (_hp / _maxHp).clamp(0.0, 1.0);
+    game.levelManager?.updateBossBar();
     if (_hp <= 0) {
       _die();
     }
@@ -203,8 +219,6 @@ class Boss extends PositionComponent
       count: 70,
       speed: 260,
     ));
-    game.bossHealth.value = null;
-    game.bossName.value = null;
     removeFromParent();
     game.levelManager?.onBossDefeated();
   }

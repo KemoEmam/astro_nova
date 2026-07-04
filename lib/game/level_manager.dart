@@ -16,10 +16,12 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
 
   LevelPhase phase = LevelPhase.intro;
   double _phaseTime = 0;
+  int _bossCount = 1;
+  int _bossesRemaining = 0;
 
   /// Wave phase length: very short early so the campaign hooks fast, growing
-  /// toward the level-10 maximum (~12s at level 1, ~32s at level 10).
-  double get _waveDuration => 10.0 + game.level.value * 2.2;
+  /// toward the level-10 maximum (~11s at level 1, ~31s at level 10).
+  double get _waveDuration => 9.0 + game.level.value * 2.2;
 
   @override
   void onMount() {
@@ -59,7 +61,7 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
         if (_phaseTime >= 2.0) {
           phase = LevelPhase.boss;
           _phaseTime = 0;
-          game.spawn(Boss(spec: bossSpecs[game.level.value - 1]));
+          _spawnBosses();
         }
       case LevelPhase.boss:
         break; // waiting on onBossDefeated
@@ -70,24 +72,68 @@ class LevelManager extends Component with HasGameReference<NeonVoidGame> {
     }
   }
 
+  /// Boss lineup per level: level 5 is a twin fight, level 10 a triple
+  /// finale. Multi-boss fights pull in the previous levels' bosses at
+  /// reduced HP, each patrolling its own lane.
+  List<BossSpec> get _lineup {
+    final level = game.level.value;
+    if (level == 5) return [bossSpecs[3], bossSpecs[4]];
+    if (level == 10) return [bossSpecs[7], bossSpecs[9], bossSpecs[8]];
+    return [bossSpecs[level - 1]];
+  }
+
   void _startBossIntro() {
     phase = LevelPhase.bossIntro;
     _phaseTime = 0;
     game.levelProgress.value = 1;
     game.spawner?.enabled = false;
-    final spec = bossSpecs[game.level.value - 1];
+    final lineup = _lineup;
     game.shake(5);
     game.spawn(CinematicBanner(
       title: '! WARNING !',
-      subtitle: '${spec.name} APPROACHING',
-      color: spec.color,
+      subtitle: '${lineup.map((s) => s.name).join(' + ')} APPROACHING',
+      color: lineup.last.color,
       lifespan: 2.0,
       flashing: true,
     ));
   }
 
+  void _spawnBosses() {
+    final lineup = _lineup;
+    _bossCount = lineup.length;
+    _bossesRemaining = lineup.length;
+
+    final n = lineup.length;
+    final laneWidth = NeonVoidGame.worldWidth / n;
+    final hpScale = switch (n) { 1 => 1.0, 2 => 0.62, _ => 0.48 };
+    for (var i = 0; i < n; i++) {
+      game.spawn(Boss(
+        spec: lineup[i],
+        centerX: laneWidth * (i + 0.5),
+        amplitude: n == 1 ? 130 : laneWidth / 2 - lineup[i].radius - 8,
+        hpScale: hpScale,
+      ));
+    }
+    game.bossHealth.value = 1.0;
+    game.bossName.value = lineup.map((s) => s.name).join(' + ');
+  }
+
+  /// Aggregate HP bar across all living bosses in the fight.
+  void updateBossBar() {
+    final bosses = game.runRoot.children.query<Boss>();
+    final total =
+        bosses.fold<double>(0, (sum, b) => sum + b.healthFraction);
+    game.bossHealth.value = (total / _bossCount).clamp(0.0, 1.0);
+  }
+
   void onBossDefeated() {
     if (phase != LevelPhase.boss) return;
+    _bossesRemaining--;
+    updateBossBar();
+    if (_bossesRemaining > 0) return;
+
+    game.bossHealth.value = null;
+    game.bossName.value = null;
     phase = LevelPhase.cleared;
     _phaseTime = 0;
 

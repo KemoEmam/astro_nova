@@ -18,7 +18,16 @@ enum EnemyType {
   weaver(hp: 2, speed: 140, score: 25, color: Palette.enemyWeaver, radius: 14),
 
   /// Slow bullet sponge. Big score payout.
-  tank(hp: 6, speed: 45, score: 60, color: Palette.enemyTank, radius: 24);
+  tank(hp: 6, speed: 45, score: 60, color: Palette.enemyTank, radius: 24),
+
+  /// Unlocks at level 3: narrow arrow that accelerates as it falls.
+  darter(hp: 1, speed: 150, score: 20, color: Color(0xFF64FFDA), radius: 12),
+
+  /// Unlocks at level 6: pentagon that splits into two drifters on death.
+  splitter(hp: 3, speed: 70, score: 40, color: Color(0xFF448AFF), radius: 20),
+
+  /// Unlocks at level 9: ghostly orb that phases in and out while strafing.
+  phantom(hp: 2, speed: 60, score: 50, color: Color(0xFFE0E0E0), radius: 15);
 
   const EnemyType({
     required this.hp,
@@ -68,11 +77,22 @@ class Enemy extends PositionComponent
   void update(double dt) {
     _age += dt;
     _hitFlash = max(0, _hitFlash - dt * 6);
-    position.y += type.speed * speedMultiplier * dt;
-    if (type == EnemyType.weaver) {
-      position.x += sin(_age * 4 + _waveOffset) * 90 * dt;
-      position.x = position.x.clamp(type.radius, NeonVoidGame.worldWidth - type.radius);
+
+    switch (type) {
+      case EnemyType.darter:
+        // Accelerates the longer it falls.
+        position.y += type.speed * speedMultiplier * (1 + _age * 0.9) * dt;
+      case EnemyType.weaver:
+        position.y += type.speed * speedMultiplier * dt;
+        position.x += sin(_age * 4 + _waveOffset) * 90 * dt;
+      case EnemyType.phantom:
+        position.y += type.speed * speedMultiplier * dt;
+        position.x += sin(_age * 2.2 + _waveOffset) * 140 * dt;
+      default:
+        position.y += type.speed * speedMultiplier * dt;
     }
+    position.x = position.x.clamp(type.radius, NeonVoidGame.worldWidth - type.radius);
+
     if (position.y > NeonVoidGame.worldHeight + height) {
       removeFromParent();
     }
@@ -83,6 +103,8 @@ class Enemy extends PositionComponent
     // Invulnerable until fully on screen — stops high-tier weapons from
     // clearing spawns before the player ever sees them.
     if (position.y < type.radius) return;
+    // Phantoms can only be hurt while mostly phased in.
+    if (type == EnemyType.phantom && _phaseAlpha < 0.5) return;
     _hp -= damage;
     _hitFlash = 1;
     if (_hp <= 0) {
@@ -96,26 +118,45 @@ class Enemy extends PositionComponent
     game.addScore(type.score);
     game.spawn(explosion(
       position: position.clone(),
-      color: type.color,
+      color: _themedColor(),
       count: type == EnemyType.tank ? 40 : 22,
     ));
+    if (type == EnemyType.splitter) {
+      for (final dx in const [-22.0, 22.0]) {
+        game.spawn(Enemy(
+          type: EnemyType.drifter,
+          position: position + Vector2(dx, 6),
+          speedMultiplier: speedMultiplier * 1.25,
+        ));
+      }
+    }
     PowerUp.maybeDrop(game, position.clone());
     removeFromParent();
   }
+
+  double get _phaseAlpha => type == EnemyType.phantom
+      ? 0.25 + 0.75 * sin(_age * 3 + _waveOffset).abs()
+      : 1.0;
+
+  /// Base color blended toward the level theme's accent, so the same enemy
+  /// type looks different in every sector of the campaign.
+  Color _themedColor() =>
+      Color.lerp(type.color, game.theme.accent, 0.35)!;
 
   @override
   void render(Canvas canvas) {
     final r = type.radius;
     final center = Offset(r, r);
-    final color = _hitFlash > 0
-        ? Color.lerp(type.color, const Color(0xFFFFFFFF), _hitFlash)!
-        : type.color;
+    var color = _hitFlash > 0
+        ? Color.lerp(_themedColor(), const Color(0xFFFFFFFF), _hitFlash)!
+        : _themedColor();
+    final alpha = _phaseAlpha;
 
     final glow = Paint()
-      ..color = color.withValues(alpha: 0.45)
+      ..color = color.withValues(alpha: 0.45 * alpha)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     final stroke = Paint()
-      ..color = color
+      ..color = color.withValues(alpha: alpha)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5;
 
@@ -129,6 +170,17 @@ class Enemy extends PositionComponent
         center,
         r * 0.5 * (_hp / maxHp),
         Paint()..color = color.withValues(alpha: 0.6),
+      );
+    }
+    // Phantoms get an inner ghost-ring.
+    if (type == EnemyType.phantom) {
+      canvas.drawCircle(
+        center,
+        r * 0.45,
+        Paint()
+          ..color = color.withValues(alpha: 0.5 * alpha)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5,
       );
     }
   }
@@ -151,14 +203,29 @@ class Enemy extends PositionComponent
           ..lineTo(c.dx - r * 0.75, c.dy)
           ..close();
       case EnemyType.tank:
-        // Hexagon.
-        final path = Path();
-        for (var i = 0; i < 6; i++) {
-          final a = pi / 6 + i * pi / 3;
-          final p = Offset(c.dx + r * cos(a), c.dy + r * sin(a));
-          i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
-        }
-        return path..close();
+        return _polygon(6, r, c, startAngle: pi / 6);
+      case EnemyType.darter:
+        // Narrow downward arrow.
+        return Path()
+          ..moveTo(c.dx, c.dy + r)
+          ..lineTo(c.dx - r * 0.45, c.dy - r)
+          ..lineTo(c.dx, c.dy - r * 0.55)
+          ..lineTo(c.dx + r * 0.45, c.dy - r)
+          ..close();
+      case EnemyType.splitter:
+        return _polygon(5, r, c, startAngle: -pi / 2);
+      case EnemyType.phantom:
+        return Path()..addOval(Rect.fromCircle(center: c, radius: r * 0.9));
     }
+  }
+
+  Path _polygon(int sides, double r, Offset c, {double startAngle = 0}) {
+    final path = Path();
+    for (var i = 0; i < sides; i++) {
+      final a = startAngle + i * 2 * pi / sides;
+      final p = Offset(c.dx + r * cos(a), c.dy + r * sin(a));
+      i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
+    }
+    return path..close();
   }
 }

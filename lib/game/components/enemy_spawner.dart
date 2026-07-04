@@ -16,18 +16,16 @@ class EnemySpawner extends Component with HasGameReference<NeonVoidGame> {
   double _sinceLastSpawn = 0;
 
   bool enabled = false;
+  int _level = 1;
   double _interval = 1.2;
-  double _weaverWeight = 0.12;
-  double _tankWeight = 0.05;
   int _bonusHp = 0;
   double _speedMultiplier = 1.0;
 
   void configureForLevel(int level) {
+    _level = level;
     _interval = max(0.52, 1.2 - 0.075 * (level - 1));
     _speedMultiplier = 1.0 + 0.045 * (level - 1);
     _bonusHp = level < 4 ? 0 : (level - 1) ~/ 3;
-    _weaverWeight = 0.10 + 0.035 * level;
-    _tankWeight = 0.04 + 0.022 * level;
   }
 
   @override
@@ -54,10 +52,22 @@ class EnemySpawner extends Component with HasGameReference<NeonVoidGame> {
     ));
   }
 
+  /// Weighted spawn table. New enemy types unlock every 3 levels (darter at
+  /// 3, splitter at 6, phantom at 9) and each type's weight keeps growing
+  /// after it unlocks; drifters absorb whatever weight is left.
   EnemyType _pickType() {
-    final roll = _random.nextDouble();
-    if (roll < _tankWeight) return EnemyType.tank;
-    if (roll < _tankWeight + _weaverWeight) return EnemyType.weaver;
+    final weights = <EnemyType, double>{
+      EnemyType.tank: 0.04 + 0.022 * _level,
+      EnemyType.weaver: 0.10 + 0.035 * _level,
+      if (_level >= 3) EnemyType.darter: 0.10 + 0.02 * (_level - 3),
+      if (_level >= 6) EnemyType.splitter: 0.08 + 0.02 * (_level - 6),
+      if (_level >= 9) EnemyType.phantom: 0.10 + 0.03 * (_level - 9),
+    };
+    var roll = _random.nextDouble();
+    for (final entry in weights.entries) {
+      if (roll < entry.value) return entry.key;
+      roll -= entry.value;
+    }
     return EnemyType.drifter;
   }
 }
